@@ -17,30 +17,35 @@ model User {
   username  String     @unique
   nombre    String
   apellidos String
+  tipo      String     @default("usuario")
   createdAt DateTime   @default(now())
   problems  Problem[]
-  solutions Solution[]
+  submissions Submission[]
 }
 
 model Problem {
   @@map("problem")
-  id        Int        @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   title     String     @db.VarChar(255)
-  createdAt DateTime   @default(now())
-  content   String?
+  description   String?
   author    User       @relation(fields: [authorId], references: [id])
   authorId  Int
-  language  String
+  jsmain    String?
+  cmain     String?
+  javamain  String?
+  content   String? //the original solution
+  difficulty Int       @default(10) //10 = easy, 20 = medium, 30 = hard
+  submission Submission?
+  createdAt DateTime   @default(now())
   active    Boolean    @default(false)
-  solution  Solution[]
 }
 
-model Solution {
-  @@map("solution")
+model Submission {
+  @@map("submission")
   id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
   content   String?
   language  String
+  createdAt DateTime @default(now())
   problem   Problem  @relation(fields: [problemId], references: [id])
   problemId Int
   author    User     @relation(fields: [authorId], references: [id])

@@ -3,8 +3,9 @@ const router = express.Router();
 
 const config = require("../config/server-config");
 
-const problems = require("./problems");
 const authentication = require("./authentication");
+const problem = require("./problem");
+const submission = require("./submission");
 
 /*const {
   app: { secret },
@@ -34,6 +35,7 @@ router.use("/admin/database", database);
 router.use("/submission", submission);*/
 
 router.use("/authentication", authentication);
-//router.use("/problems", problems);
+router.use("/problem", problem);
+router.use("/submission", submission);
 
 module.exports = router;

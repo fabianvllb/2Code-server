@@ -30,7 +30,7 @@ router.post(
 router.post(
   "/login",
   [
-    // check username
+    // check email
     check("email").not().isEmpty().withMessage("Usuario no puede estar vacio"),
     // check password
     check("password")
