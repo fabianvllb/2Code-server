@@ -63,7 +63,7 @@ exports.question_readone = async function (req, res, next) {
   try {
     problem = await problemService.findById(req.params.id);
   } catch (err) {
-    res.status(422).json({ errors: [error] });
+    res.status(422).json({ errors: [err] });
     return next(err);
   }
   //console.log("id:", req.params.id, "problem:\n", problem);
