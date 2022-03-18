@@ -1,67 +1,91 @@
 const ValidationError = require("../models/validationerror");
-const ProblemService = require("../models/problem");
-const userService = require("../models/user");
+const Problem = require("../models/problem");
+const { DateTime } = require("luxon");
+const User = require("../models/user");
 const { PrismaClient, Prisma } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
 exports.question_create = async function (req, res, next) {
-  const author = await prisma.user.findUnique({
-    where: {
-      username: req.body.username,
-    },
-    select: {
-      id: true,
-    },
-  });
-  // si no se encuentra al autor
+  let author;
+  author = await User.findUserByUsername(req.body.username);
+
+  // If author doesn't exist
   if (!author) {
     console.log("Usuario inexistente: ID del autor no encontrado");
     var error = new ValidationError(
       "body",
       "username",
       req.body.username,
-      "Usuario inexistente!"
+      "Usuario no encontrado"
+    );
+    res.status(422).json({ errors: [error] });
+    return;
+  }
+
+  // Check if problem's uniquename is not in use
+  let newProblem;
+  let uniquename = toUniqueName(req.body.title);
+  newProblem = await Problem.findByUniquename(uniquename);
+
+  if (!newProblem) {
+    newProblem = new Problem(
+      req.body.title,
+      uniquename,
+      req.body.description,
+      author.id,
+      req.body.jsmain,
+      req.body.cmain,
+      req.body.javamain,
+      req.body.difficulty,
+      DateTime.now().toISO()
+    );
+    // probamos a almacenar el nuevo problema en la base de datos
+    try {
+      newProblem.save();
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === "P2002") {
+          console.log("No se puede crear el problema: ID ya existente");
+        } else {
+          console.log("Error durante la operacion CREATE");
+        }
+      }
+      res.status(422).json({ errors: [e] });
+      return next(e);
+    }
+    res.status(200).send(newProblem);
+  } else {
+    console.log("Uniquename ya existe: el uniquename del problema ya existe");
+    var error = new ValidationError(
+      "body",
+      "title",
+      req.body.title,
+      "Uniquename ya existe"
     );
     res.status(422).json({ errors: [error] });
   }
-
-  let newProblem;
-  // probamos a almacenar el nuevo problema en la base de datos
-  try {
-    newProblem = await prisma.problem.create({
-      data: {
-        title: req.body.title,
-        description: req.body.description,
-        jsmain: req.body.jsmain,
-        cmain: req.body.cmain,
-        javamain: req.body.javamain,
-        content: req.body.content,
-        difficulty: req.body.difficulty,
-        authorId: author.id,
-        //frequency: req.body.frequency,
-        //rating: req.body.rating,
-        //hints: req.body.hints,
-      },
-    });
-  } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError) {
-      if (e.code === "P2002") {
-        console.log("No se puede crear el problema: ID ya existente");
-      } else {
-        console.log("Error durante la operacion CREATE");
-      }
-    }
-    return next(e);
-  }
-  res.status(200).send(newProblem);
 };
 
+function toUniqueName(value) {
+  if (value) {
+    let words = value.split(" ");
+    let name = "";
+    for (let i = 0; i < words.length; i++) {
+      name += words[i].toLowerCase();
+      name += "-";
+    }
+    name = name.slice(0, name.length - 1);
+    return name;
+  } else {
+    return undefined;
+  }
+}
+
 exports.question_readone = async function (req, res, next) {
-  const problemService = new ProblemService();
   let problem;
   try {
-    problem = await problemService.findById(req.params.id);
+    problem = await Problem.findById(req.params.id);
   } catch (err) {
     res.status(422).json({ errors: [err] });
     return next(err);
@@ -93,10 +117,9 @@ exports.question_delete = function (req, res, next) {
 };*/
 
 exports.question_all = async function (req, res, next) {
-  const problemService = new ProblemService();
   let problems;
   try {
-    problems = await problemService.getActiveQuestionsMinimal();
+    problems = await Problem.getAllActiveQuestionsMinimal();
   } catch (err) {
     res.status(422).json({ errors: [error] });
     return next(err);

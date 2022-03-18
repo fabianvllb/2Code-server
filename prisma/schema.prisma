@@ -34,10 +34,9 @@ model Problem {
   jsmain    String?
   cmain     String?
   javamain  String?
-  content   String? //the original solution
-  difficulty Int       @default(10) //10 = easy, 20 = medium, 30 = hard
+  difficulty String       @default("10") //10 = easy, 20 = medium, 30 = hard
   submission Submission[]
-  createdAt DateTime   @default(now())
+  timecreated DateTime   
   active    Boolean    @default(false)
 }
 

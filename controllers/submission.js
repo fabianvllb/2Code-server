@@ -1,4 +1,5 @@
 const Submission = require("../models/submission");
+const Problem = require("../models/problem");
 const { DateTime } = require("luxon");
 const RunnerManager = require("../judgingengine/RunnerManager");
 /*const Question = require("../models/question");
@@ -161,6 +162,15 @@ exports.submission_create = async function (req, res, next) {
       DateTime.now().toISO(),
       null
     );
+    /*submission = new Submission();
+    submission.authorId = parseInt(req.body.userid);
+    submission.problemId = parseInt(req.body.problemid);
+    submission.solution = req.body.solution;
+    submission.language = req.body.language;
+    submission.status = "initial";
+    submission.timeupdated = timeupdated;
+    submission.timesubmitted = timesubmitted;
+    submission.runtime = 0;*/
     // 2. Save new submission
     submission.save();
   }
@@ -278,6 +288,11 @@ exports.submission_all = function(req, res, next) {
 };*/
 
 exports.submission_run = async function (req, res, next) {
+  /**
+   * Mandatory: userid, problemid, language
+   * Optional: solution
+   */
+  console.log("submission_run starts");
   let submission;
   // Search existing submission
   try {
@@ -307,25 +322,31 @@ exports.submission_run = async function (req, res, next) {
     // 2. Save new submission
     submission.save();
     // 3. Run
-    run(req, res, next, submission);
+    //run(req, res, next, submission);
   } else {
     // If submission exists
     // 1. Update solution
     submission.solution = req.body.solution;
     submission.timeupdated = DateTime.now().toISO();
-    submission.update();
+    submission.update(null);
     // 2. Run
-    run(req, res, next, submission);
   }
+  // Find submission's problem
+  let problemUniquename = await Problem.getProblemUniquenameById(
+    parseInt(req.body.problemid)
+  );
+
+  run(req, res, next, submission, problemUniquename);
 };
 
-function run(req, res, next, submission) {
+function run(req, res, next, submission, problemUniquename) {
+  console.log("Starting run function in submission.js");
   // 1. Start runtime timer
   var start = DateTime.now();
 
   // 2. Then, run the solution to get the test result
   RunnerManager.run(
-    submission.problemId,
+    problemUniquename,
     submission.language,
     submission.solution,
     function (status, message) {

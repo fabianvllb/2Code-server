@@ -31,19 +31,15 @@ function Factory() {
 
 module.exports = {
   run(question, lang, solution, callback) {
+    console.log("Starting run function in RunnerManager.js");
+    console.log(question);
     const factory = new Factory();
     const runner = factory.createRunner(lang.toLowerCase());
 
     // copy all files in the question folder from solution folder
-    const sourceDir = path.resolve(
-      `${appRoot}`,
-      "server",
-      "solution",
-      question
-    );
+    const sourceDir = path.resolve(`${appRoot}`, "solution", question);
     const targetDir = path.resolve(
       `${appRoot}`,
-      "server",
       "judgingengine",
       "temp",
       question + "_" + lang + "_" + DateTime.now().toISO() // 2013-02-04T22:44:30.652Z
@@ -64,25 +60,29 @@ module.exports = {
           if (err) {
             callback("99", String(err)); // 99, system error
           }
-          // save the solution to Solution.java
+          // save the solution to Solution.java/Solution.js/Solution.c
           const sourceFile = path.resolve(targetDir, runner.sourceFile());
           //console.log(`source file: ${sourceFile}`);
-          const filename = path.parse(sourceFile).name; // main
+          const filename = path.parse(sourceFile).name; // main or Solution.java in this case
           const extension = path.parse(sourceFile).ext; // .java
           //console.log(`filename: ${filename}`);
           //console.log(`extension: ${extension}`);
 
+          // Obtain method name and export it
           if (lang == "javascript") {
-            // get method name and export it
+            //TODO upgrade method finding.
+            // get method name i.e: twoSum
             const method = solution
               .substring(solution.indexOf("var") + 4, solution.indexOf("="))
               .trim();
-            solution = solution + " " + "module.exports = " + method + ";";
+            // add to module exports
+            solution = solution + "; " + "module.exports = " + method + ";";
             //solution = solution + os.EOL + " module.exports = reverseString;";
           }
+          // We save Solution.java with its modified content
           FileApi.saveFile(sourceFile, solution, () => {
             const testFile = path.resolve(targetDir, runner.testFile());
-            const testFileName = path.parse(testFile).name; // main
+            const testFileName = path.parse(testFile).name; // main or SolutionTester in this case
             runner.run(
               testFile,
               targetDir,

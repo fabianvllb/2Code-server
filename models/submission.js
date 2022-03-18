@@ -2,6 +2,8 @@ const { PrismaClient, Prisma } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 module.exports = class Submission {
+  //constructor(){}
+
   constructor(
     authorId,
     problemId,
@@ -44,8 +46,30 @@ module.exports = class Submission {
     return;
   }
 
+  setAllValues({
+    solution,
+    language,
+    problemId,
+    authorId,
+    status,
+    timeupdated,
+    timesubmitted,
+    runtime,
+  }) {
+    this.solution = solution;
+    this.language = language;
+    this.problemId = problemId;
+    this.authorId = authorId;
+    this.status = status;
+    this.timeupdated = timeupdated;
+    this.timesubmitted = timesubmitted;
+    this.runtime = runtime;
+  }
+
   static find(where) {
-    return prisma.submission.findMany({ where });
+    let submission = new Submission();
+    submission.setAllValues(prisma.submission.findMany({ where }));
+    return submission;
   }
 
   static async findById(id, callback) {
