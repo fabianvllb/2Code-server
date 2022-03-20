@@ -23,9 +23,10 @@ module.exports = class Submission {
     this.runtime = 0;
   }
 
-  async save() {
+  async create() {
     let data = await prisma.submission.create({ data: this });
-    this.id = data.id;
+    //this.id = data.id;
+    this.setAllValues(data);
   }
 
   async update(callback) {
@@ -47,6 +48,7 @@ module.exports = class Submission {
   }
 
   setAllValues({
+    id,
     solution,
     language,
     problemId,
@@ -56,6 +58,7 @@ module.exports = class Submission {
     timesubmitted,
     runtime,
   }) {
+    this.id = id;
     this.solution = solution;
     this.language = language;
     this.problemId = problemId;
@@ -66,30 +69,39 @@ module.exports = class Submission {
     this.runtime = runtime;
   }
 
-  static find(where) {
-    let submission = new Submission();
-    submission.setAllValues(prisma.submission.findMany({ where }));
+  printThis() {
+    console.log("this printed");
+  }
+
+  static async find(where) {
+    let submission;
+    const data = await prisma.submission.findMany({ where });
+    //console.log("data found: ", data);
+    if (data[0]) {
+      submission = new Submission();
+      submission.setAllValues(data[0]);
+    }
+    //console.log("submission: ", submission);
     return submission;
   }
 
   static async findById(id, callback) {
-    let submission;
+    const submission = new Submission();
+    let data;
     try {
-      submission = await prisma.submission.findUnique({
+      data = await prisma.submission.findUnique({
         where: {
-          id: parseInt(id),
+          id,
         },
       });
     } catch (err) {
-      callback(err, submission);
+      callback(err, data);
       return;
     }
-    if (!submission) {
-      callback(
-        `Error on findById- No submission with id ${id} found`,
-        submission
-      );
+    if (!data || data == undefined) {
+      callback(`Error on findById- No submission with id ${id} found`, data);
     } else {
+      submission.setAllValues(data);
       callback(undefined, submission);
     }
     return;

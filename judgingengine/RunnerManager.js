@@ -31,8 +31,8 @@ function Factory() {
 
 module.exports = {
   run(question, lang, solution, callback) {
-    console.log("Starting run function in RunnerManager.js");
-    console.log(question);
+    console.log("**Starting run function in RunnerManager.js**");
+    //console.log(question);
     const factory = new Factory();
     const runner = factory.createRunner(lang.toLowerCase());
 
@@ -42,7 +42,7 @@ module.exports = {
       `${appRoot}`,
       "judgingengine",
       "temp",
-      question + "_" + lang + "_" + DateTime.now().toISO() // 2013-02-04T22:44:30.652Z
+      question + "_" + lang + "_" + DateTime.now().toISO().substring(0, 23) // 2022-02-03T22:44:30.652 on local server time
     );
 
     // copy source code files

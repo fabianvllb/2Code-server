@@ -172,13 +172,13 @@ exports.submission_create = async function (req, res, next) {
     submission.timesubmitted = timesubmitted;
     submission.runtime = 0;*/
     // 2. Save new submission
-    submission.save();
+    submission.create();
   }
   res.status(200).send(submission);
 };
 
 exports.submission_readone = function (req, res, next) {
-  Submission.findById(req.params.id, function (err, submission) {
+  Submission.findById(parseInt(req.params.id), function (err, submission) {
     if (err) {
       return next(err);
     }
@@ -292,55 +292,61 @@ exports.submission_run = async function (req, res, next) {
    * Mandatory: userid, problemid, language
    * Optional: solution
    */
-  console.log("submission_run starts");
+  console.log("**submission_run starts**");
   let submission;
   // Search existing submission
-  try {
-    submission = await Submission.find({
-      authorId: parseInt(req.body.userid),
-      problemId: parseInt(req.body.problemid),
-      language: req.body.language,
-      status: "initial",
-    });
-  } catch (err) {
+  //try {
+  submission = await Submission.find({
+    authorId: parseInt(req.body.userid),
+    problemId: parseInt(req.body.problemid),
+    language: req.body.language,
+    status: "initial",
+  });
+  /*} catch (err) {
     res.status(422).json({ errors: [err] });
     return next(err);
-  }
+  }*/
 
-  if (!submission[0]) {
+  if (!submission) {
     // If no submission is found
-    // 1. Create new submission
+    console.log("No submission was found!");
+    // Create new submission
     submission = new Submission(
       parseInt(req.body.userid),
       parseInt(req.body.problemid),
       req.body.solution,
       req.body.language,
       "initial", // not submitted -> just created
-      DateTime.now().toISO(),
-      DateTime.now().toISO()
+      DateTime.now().toISO(), //.toFormat("yyyy'-'LL'-'dd'T'HH':'mm':'ss'.'u'Z'"),
+      DateTime.now().toISO() //.toFormat("yyyy'-'LL'-'dd'T'HH':'mm':'ss'.'u'Z'")
     );
-    // 2. Save new submission
-    submission.save();
-    // 3. Run
-    //run(req, res, next, submission);
+    // Save new submission
+    submission.create();
   } else {
     // If submission exists
-    // 1. Update solution
+    console.log("A submission was found!");
+    // Update solution
     submission.solution = req.body.solution;
     submission.timeupdated = DateTime.now().toISO();
-    submission.update(null);
-    // 2. Run
+    try {
+      submission.update(null);
+    } catch (err) {
+      res.status(422).json({ errors: [err] });
+      return next(err);
+    }
   }
   // Find submission's problem
   let problemUniquename = await Problem.getProblemUniquenameById(
     parseInt(req.body.problemid)
   );
 
+  // Run submission
   run(req, res, next, submission, problemUniquename);
+  //res.status(200).send(submission);
 };
 
 function run(req, res, next, submission, problemUniquename) {
-  console.log("Starting run function in submission.js");
+  console.log("**Starting run function in submission.js**");
   // 1. Start runtime timer
   var start = DateTime.now();
 
@@ -350,7 +356,7 @@ function run(req, res, next, submission, problemUniquename) {
     submission.language,
     submission.solution,
     function (status, message) {
-      const result = {
+      let result = {
         status,
         message,
       };
@@ -358,7 +364,8 @@ function run(req, res, next, submission, problemUniquename) {
       if (status == "pass" || status == "fail") {
         var end = DateTime.now();
 
-        var ms = end.diff(start);
+        var ms = end.diff(start, ["seconds", "milliseconds"]);
+        console.log("Runtime: ", ms.toObject());
         /*var ms = moment(end, "DD/MM/YYYY HH:mm:ss").diff(
           moment(start, "DD/MM/YYYY HH:mm:ss")
         );*/
@@ -367,15 +374,21 @@ function run(req, res, next, submission, problemUniquename) {
         Submission.findById(submission.id, function (err, submission) {
           // update status
           submission.status = status;
-          submission.runtime = ms;
+          submission.runtime = ms.seconds + ms.milliseconds / 1000;
           submission.timesubmitted = DateTime.now().toISO();
 
           console.log(submission);
+          //result.runtime = submission.runtime;
           // 4. Update the submission
-          submission.update(function (err) {
-            if (err) return next(err);
-            res.end(JSON.stringify(result));
-          });
+          try {
+            submission.update(function (err) {
+              if (err) return next(err);
+              res.end(JSON.stringify(result));
+            });
+          } catch (err) {
+            res.status(422).json({ errors: [err] });
+            return next(err);
+          }
         });
       } else {
         res.end(JSON.stringify(result));
