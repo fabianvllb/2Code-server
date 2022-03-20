@@ -8,17 +8,14 @@ const ErrorUtil = require("../utils/").ErrorUtil;
 const SleepUtil = require("../utils/").SleepUtil;*/
 
 // questions
-/*exports.question_all = function(req, res, next) {
-  SleepUtil.sleep();
-  Question.find({})
-    .sort({ sequence: "asc" })
-    .exec(function(err, questions) {
-      if (err) return next(err);
-      res.status(200).send(questions);
-    });
+exports.problem_all = async function (req, res, next) {
+  const problems = await Problem.getAllProblems({
+    active: true,
+  });
+  res.status(200).send(problems);
 };
 
-exports.question_findByKeys = function(req, res, next) {
+/*exports.question_findByKeys = function(req, res, next) {
   SleepUtil.sleep();
   var strKeys = req.params.keys;
   if (!strKeys) {
@@ -162,15 +159,6 @@ exports.submission_create = async function (req, res, next) {
       DateTime.now().toISO(),
       null
     );
-    /*submission = new Submission();
-    submission.authorId = parseInt(req.body.userid);
-    submission.problemId = parseInt(req.body.problemid);
-    submission.solution = req.body.solution;
-    submission.language = req.body.language;
-    submission.status = "initial";
-    submission.timeupdated = timeupdated;
-    submission.timesubmitted = timesubmitted;
-    submission.runtime = 0;*/
     // 2. Save new submission
     submission.create();
   }
@@ -378,7 +366,6 @@ function run(req, res, next, submission, problemUniquename) {
           submission.timesubmitted = DateTime.now().toISO();
 
           console.log(submission);
-          //result.runtime = submission.runtime;
           // 4. Update the submission
           try {
             submission.update(function (err) {

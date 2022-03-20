@@ -73,7 +73,7 @@ module.exports = class Problem {
     return problem.uniquename;
   }
 
-  static getAllQuestions(where) {
+  static getAllProblems(where) {
     if (where) {
       return prisma.problem.findMany({ where });
     }

@@ -4,7 +4,7 @@ var router = express.Router();
 var submission_controller = require("../controllers/submission");
 
 // questions
-//router.get("/questions", submission_controller.question_all);
+router.get("/problems", submission_controller.problem_all);
 //router.get("/question/:keys", submission_controller.question_findByKeys);
 
 // submissions
