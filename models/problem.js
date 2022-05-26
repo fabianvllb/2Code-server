@@ -86,6 +86,7 @@ module.exports = class Problem {
         active: true,
       },
       select: {
+        id: true,
         title: true,
         difficulty: true,
       },
