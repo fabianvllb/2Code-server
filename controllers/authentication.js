@@ -1,15 +1,14 @@
-//var passport = require("passport");
-//var mongoose = require("mongoose");
-//var moment = require("moment");
-//const { DateTime } = require("luxon");
-//var User = mongoose.model("User");
-const { PrismaClient } = require("@prisma/client");
+//const { PrismaClient } = require("@prisma/client");
+const db = require("../models/db");
 const { validationResult } = require("express-validator");
 const ValidationError = require("../models/validationerror");
+const crypto = require("crypto");
+const User = require("../models/user");
+const { DateTime } = require("luxon");
 //const TokenUtil = require("../utils/").TokenUtil;
 //const SleepUtil = require("../utils/").SleepUtil;
 
-const prisma = new PrismaClient();
+//const prisma = new PrismaClient();
 
 /*var sendJSONresponse = function (res, status, content) {
   res.status(status);
@@ -22,53 +21,52 @@ module.exports.signup = async function (req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     // return if validation fails
-    return res.status(422).json({ errors: errors.array() });
+    return res.status(400).json({ errors: errors.array() });
   }
 
-  user = await prisma.user.findUnique({
-    where: {
-      email: req.body.email,
-    },
-  });
+  let user = await User.findUserByEmail(req.body.email);
+
   if (user) {
+    // We verify if an account with this email already exists
     var error = new ValidationError(
       "body",
       "email",
       req.body.email,
-      "El email ya existe!"
+      "This email is already in use."
     );
-    res.status(422).json({ errors: [error] });
+    return res.status(409).json({ errors: [error] });
   } else {
-    let user = await prisma.user.findUnique({
-      where: {
-        username: req.body.username,
-      },
-    });
-    if (user) {
-      var error = new ValidationError(
-        "body",
-        "username",
-        req.body.username,
-        "El nombre de usuario ya existe!"
-      );
-      res.status(422).json({ errors: [error] });
-    } else {
-      let newUser;
-      try {
-        newUser = await prisma.user.create({
-          data: {
-            email: req.body.email,
-            username: req.body.username,
-            nombre: req.body.nombre,
-            apellidos: req.body.apellidos,
-          },
-        });
-      } catch (e) {
-        console.error(e);
-        res.status(422).json({ errors: [e] });
-        throw e;
+    const arr = req.body.email.split("@");
+
+    // We create a new user account
+    let user = new User(
+      req.body.email,
+      req.body.firstname,
+      req.body.lastname,
+      arr[0],
+      "user"
+    );
+    // set hash, salt and add time of creation
+    user.setPassword(req.body.password);
+    user.timecreated = DateTime.now().toISO();
+    //console.log(user);
+    let result = await user.insertToDB(); /*(err, row) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).json({ errors: err });
       }
-      res.status(200).json(newUser);
+      //let token = user.generateJwt();
+      //res.status(201);
+      /*res.json({
+        token,
+      });*/ /*
+      res.status(201).json(row);
+    });*/
+    if (result == 1) {
+      res.status(201).send("User created");
+      // TODO We proceed to log in
+    } else {
+      res.status(500).send("Couldn't create user");
     }
   }
 };
@@ -77,36 +75,58 @@ module.exports.login = async function (req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     // return if validation fails
-    return res.status(422).json({ errors: errors.array() });
+    return res.status(400).json({ errors: errors.array() });
   }
 
-  user = await prisma.user.findUnique({
-    where: {
-      email: req.body.email,
-    },
-  });
-  // if no user found, meaning validation fails
+  let user = await User.findUserByEmail(req.body.email);
+  //let user = User.createUserFromObject(data);
+
+  //console.log(user);
   if (!user) {
+    // No account with this email has been found
     var error = new ValidationError(
       "body",
       "email",
       req.body.email,
-      "El email no esta registrado"
+      "This email is not registered."
     );
-    return res.status(422).json({ errors: [error] });
+    return res.status(400).json({ errors: [error] });
   } else {
-    /*var token = user.generateJwt();
-    if (req.body.remember == true) {
-      console.log("remember me, save cookie");
-      res.cookie("cookieToken", token, { maxAge: 900000 }); //expires after 900000 ms = 15 minutes
-    }*/
-    res.status(200);
-    res.json({
-      //token: token,
-      email: req.body.email,
-      logged: "yes",
-    });
+    // An account with this email has been found
+    if (!user.isCorrectPassword(req.body.password)) {
+      // Typed password does not match
+      var error = new ValidationError(
+        "body",
+        "password",
+        req.body.email,
+        "Incorrect password."
+      );
+      return res.status(400).json({ errors: [error] });
+    } else {
+      // TODO Password matches, we proceed to log in
+      res.status(200).send("Logged in");
+    } /*
+    /*(err, row) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).json({ errors: err });
+      }
+      //let token = user.generateJwt();
+      //res.status(201);
+      /*res.json({
+        token,
+      });*/
   }
+};
+
+module.exports.logout = function (req, res) {
+  res.status(200).json({ message: "logged out" });
+  /*SleepUtil.sleep();
+  console.log(req.cookies);
+  res.clearCookie("cookieToken");
+  console.log(req.cookies);
+
+  res.status(200).send();*/
 };
 
 /*module.exports.autologin = function(req, res) {
@@ -149,15 +169,6 @@ module.exports.login = async function (req, res) {
     res.status(401).send();
   }
 };*/
-
-module.exports.logout = function (req, res) {
-  SleepUtil.sleep();
-  console.log(req.cookies);
-  res.clearCookie("cookieToken");
-  console.log(req.cookies);
-
-  res.status(200).send();
-};
 
 /*module.exports.update = function (req, res) {
   SleepUtil.sleep();

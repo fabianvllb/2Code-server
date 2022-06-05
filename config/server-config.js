@@ -9,9 +9,9 @@ const app = {
 const local = {
   app: app,
   db: {
-    host: process.env.LOCAL_DB_HOST || "testuser:abc123@localhost",
-    port: parseInt(process.env.LOCAL_DB_PORT) || 27017,
-    name: process.env.LOCAL_DB_NAME || "onlinejudge",
+    host: process.env.LOCAL_DB_HOST || "tocode:letscode@localhost",
+    port: parseInt(process.env.LOCAL_DB_PORT) || 5432,
+    name: process.env.LOCAL_DB_NAME || "tocodeapp",
   },
 };
 const dev = {

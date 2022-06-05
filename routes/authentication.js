@@ -1,8 +1,11 @@
-var express = require("express");
-var router = express.Router();
-const { check, validationResult } = require("express-validator");
+const express = require("express");
+const router = express.Router();
+const { body, check, validationResult } = require("express-validator");
+const authentication_controller = require("../controllers/authentication");
 
-var authentication_controller = require("../controllers/authentication");
+router.get("/", function (req, res) {
+  res.json({ message: "Welcome to Auth :/" });
+});
 
 router.post(
   "/signup",
@@ -10,9 +13,9 @@ router.post(
     // check email
     check("email").isEmail().withMessage("La direccion email es invalida"),
     // check username
-    check("username")
+    /*check("username")
       .isLength({ min: 4 })
-      .withMessage("El nombre de usuario debe ser de al menos 4 caracteres"),
+      .withMessage("El nombre de usuario debe ser de al menos 4 caracteres"),*/
     // check password
     check("password")
       .isLength({ min: 6 })
@@ -20,6 +23,7 @@ router.post(
       .matches(/\d/)
       .withMessage("La contrasena debe contener al menos un numero"),
   ],
+  //[body("email").isEmail(), body("password").isLength({ min: 5 })],
   authentication_controller.signup
 );
 

@@ -5,12 +5,20 @@ var morgan = require("morgan");
 var FileApi = require("./api/FileApi");
 var config = require("./config/server-config");
 var bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const passport = require("passport");
+const flash = require("express-flash");
+const session = require("express-session");
 
-// Create working directory
+const initializePassport = require("./config/passport-config");
+initializePassport(passport);
+
+// Import server config
 console.log(config);
 const {
-  app: { port, cors_client_url, temp_directory },
+  app: { secret, port, cors_client_url, temp_directory },
 } = config;
+// Create working directory
 const tempDir = path.resolve(__dirname, temp_directory);
 FileApi.creatDirectory(tempDir, (err, message) => {
   if (err) {
@@ -19,23 +27,37 @@ FileApi.creatDirectory(tempDir, (err, message) => {
     console.log(message);
   }
 });
-// Bring in the data model
-//require("./models/mongodb");
+// Start database connection
+require("./models/db");
 
 const app = express();
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-  })
-);
 
-// logging
+/*----------------------------- Middleware -----------------------------------*/
+// Add logging
 app.use(morgan("short"));
 
-// configure app to use bodyParser(), this will let us get the data from a POST
+// Configure app to use bodyParser(), this will let us get the data from a POST
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(
+  cors({
+    origin: cors_client_url,
+    credentials: true,
+  })
+);
+app.use(
+  session({
+    secret: secret,
+    resave: true,
+    saveUninitialized: true,
+  })
+);
+app.use(cookieParser(secret));
+app.use(flash());
+app.use(passport.initialize());
+app.use(passport.session());
 
+/*----------------------------- Routing -----------------------------------*/
 // routes
 var routes = require("./routes");
 // Use the API routes when path starts with /api
