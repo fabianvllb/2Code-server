@@ -17,21 +17,19 @@ module.exports = class User {
     this.username = username;
     this.role = role;
     this.timecreated = undefined;
-    this.hash = undefined;
-    this.salt = undefined;
+    /*this.hash = undefined;
+    this.salt = undefined;*/
   }
 
   async insertToDB() {
     let res = await db.query(
-      "INSERT INTO public.user (email, firstname, lastname, username, timecreated, hash, salt) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+      "INSERT INTO public.user (email, firstname, lastname, username, timecreated) VALUES ($1, $2, $3, $4, $5)",
       [
         this.email,
         this.firstname,
         this.lastname,
         this.username,
         this.timecreated,
-        this.hash,
-        this.salt,
       ]
     );
     return res.rowCount;
