@@ -5,18 +5,11 @@ var morgan = require("morgan");
 var FileApi = require("./api/FileApi");
 var config = require("./config/server-config");
 var bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
-const passport = require("passport");
-const flash = require("express-flash");
-const session = require("express-session");
-
-const initializePassport = require("./config/passport-config");
-initializePassport(passport);
 
 // Import server config
 console.log(config);
 const {
-  app: { secret, port, cors_client_url, temp_directory },
+  app: { port, cors_client_url, temp_directory },
 } = config;
 // Create working directory
 const tempDir = path.resolve(__dirname, temp_directory);
@@ -42,20 +35,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(
   cors({
     origin: cors_client_url,
-    credentials: true,
   })
 );
-app.use(
-  session({
-    secret: secret,
-    resave: true,
-    saveUninitialized: true,
-  })
-);
-app.use(cookieParser(secret));
-app.use(flash());
-app.use(passport.initialize());
-app.use(passport.session());
 
 /*----------------------------- Routing -----------------------------------*/
 // routes

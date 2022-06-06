@@ -1,28 +1,18 @@
-//const { PrismaClient } = require("@prisma/client");
 const db = require("../models/db");
 const { validationResult } = require("express-validator");
 const ValidationError = require("../models/validationerror");
-const crypto = require("crypto");
+//const crypto = require("crypto");
 const User = require("../models/user");
 const { DateTime } = require("luxon");
-//const TokenUtil = require("../utils/").TokenUtil;
-//const SleepUtil = require("../utils/").SleepUtil;
-
-//const prisma = new PrismaClient();
-
-/*var sendJSONresponse = function (res, status, content) {
-  res.status(status);
-  res.json(content);
-};*/
 
 module.exports.signup = async function (req, res) {
   //SleepUtil.sleep();
   // get the validation result which is defined in router
-  const errors = validationResult(req);
+  /*const errors = validationResult(req);
   if (!errors.isEmpty()) {
     // return if validation fails
     return res.status(400).json({ errors: errors.array() });
-  }
+  }*/
 
   let user = await User.findUserByEmail(req.body.email);
 
@@ -47,7 +37,7 @@ module.exports.signup = async function (req, res) {
       "user"
     );
     // set hash, salt and add time of creation
-    user.setPassword(req.body.password);
+    //user.setPassword(req.body.password);
     user.timecreated = DateTime.now().toISO();
     //console.log(user);
     let result = await user.insertToDB(); /*(err, row) => {
