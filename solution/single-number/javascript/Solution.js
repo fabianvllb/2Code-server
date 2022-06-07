@@ -1,4 +1,4 @@
-var singleNumber = function(nums) {
+var singleNumber = function (nums) {
   if (!nums) {
     return 0;
   }

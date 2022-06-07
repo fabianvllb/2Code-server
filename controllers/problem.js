@@ -1,62 +1,36 @@
+const { validationResult } = require("express-validator");
 const ValidationError = require("../models/validationerror");
 const Problem = require("../models/problem");
 const { DateTime } = require("luxon");
 const User = require("../models/user");
-const { PrismaClient, Prisma } = require("@prisma/client");
+//const { PrismaClient, Prisma } = require("@prisma/client");
 
-const prisma = new PrismaClient();
+//const prisma = new PrismaClient();
 
 exports.question_create = async function (req, res, next) {
-  let author;
-  author = await User.findUserByUsername(req.body.username);
+  let authorUser = await User.findUserById(req.body.userid);
+
+  //console.log(authorUser);
 
   // If author doesn't exist
-  if (!author) {
-    console.log("Usuario inexistente: ID del autor no encontrado");
+  if (!authorUser) {
+    console.log("error: author ID not found");
     var error = new ValidationError(
       "body",
-      "username",
-      req.body.username,
-      "Usuario no encontrado"
+      "userid",
+      req.body.userid,
+      "User not found"
     );
-    res.status(422).json({ errors: [error] });
-    return;
+    return res.status(400).json({ errors: [error] });
   }
-
+  //console.log("author id: ", authorUser.id);
   // Check if problem's uniquename is not in use
-  let newProblem;
-  let uniquename = toUniqueName(req.body.title);
-  newProblem = await Problem.findByUniquename(uniquename);
+  let uniquename = Problem.stringToUniqueName(req.body.title);
+  let newProblem = await Problem.findByUniquename(uniquename);
 
-  if (!newProblem) {
-    newProblem = new Problem(
-      req.body.title,
-      uniquename,
-      req.body.description,
-      author.id,
-      req.body.jsmain,
-      req.body.cmain,
-      req.body.javamain,
-      req.body.difficulty,
-      DateTime.now().toISO()
-    );
-    // probamos a almacenar el nuevo problema en la base de datos
-    try {
-      newProblem.save();
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === "P2002") {
-          console.log("No se puede crear el problema: ID ya existente");
-        } else {
-          console.log("Error durante la operacion CREATE");
-        }
-      }
-      res.status(422).json({ errors: [e] });
-      return next(e);
-    }
-    res.status(200).send(newProblem);
-  } else {
-    console.log("Uniquename ya existe: el uniquename del problema ya existe");
+  //console.log(newProblem);
+
+  if (newProblem) {
     var error = new ValidationError(
       "body",
       "title",
@@ -64,51 +38,82 @@ exports.question_create = async function (req, res, next) {
       "Uniquename ya existe"
     );
     res.status(422).json({ errors: [error] });
+  } else {
+    newProblem = new Problem(
+      req.body.title,
+      req.body.description,
+      authorUser.id,
+      req.body.difficulty
+    );
+    newProblem.jsmain = req.body.jsmain;
+    newProblem.cmain = req.body.cmain;
+    newProblem.javamain = req.body.javamain;
+    newProblem.timecreated = DateTime.now().toISO();
+    newProblem.active = true;
+
+    // probamos a almacenar el nuevo problema en la base de datos
+    newProblem.insertToDB();
+    res.status(200).json({ status: "CREATE" });
   }
 };
 
-function toUniqueName(value) {
-  if (value) {
-    let words = value.split(" ");
-    let name = "";
-    for (let i = 0; i < words.length; i++) {
-      name += words[i].toLowerCase();
-      name += "-";
-    }
-    name = name.slice(0, name.length - 1);
-    return name;
-  } else {
-    return undefined;
-  }
-}
-
 exports.question_readone = async function (req, res, next) {
-  let problem;
   try {
-    problem = await Problem.findById(req.params.id);
+    const problem = await Problem.findProblemById(req.params.id);
+    res.status(200).send(problem);
   } catch (err) {
     res.status(422).json({ errors: [err] });
     return next(err);
   }
   //console.log("id:", req.params.id, "problem:\n", problem);
-  res.status(200).send(problem);
 };
 
-/*exports.question_update = function (req, res, next) {
-  //SleepUtil.sleep();
-  console.log(req.body);
-  Question.findByIdAndUpdate(
-    req.params.id,
-    { $set: req.body },
-    { new: true },
-    function (err, question) {
-      if (err) return next(err);
-      res.status(200).send(question);
+exports.question_update = async function (req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    // return if validation fails
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  let problem;
+  try {
+    problem = await Problem.findProblemById(req.params.id);
+  } catch (err) {
+    res.status(422).json({ errors: [err] });
+    return next(err);
+  }
+  if (problem) {
+    if (problem.title != req.body.title) {
+      let uniquename = Problem.stringToUniqueName(req.body.title);
+      let otherProblem = await Problem.findByUniquename(uniquename);
+
+      if (otherProblem) {
+        var error = new ValidationError(
+          "body",
+          "title",
+          req.body.title,
+          "Uniquename is already in use"
+        );
+        return res.status(409).json({ errors: [error] });
+      } else {
+        problem.title = req.body.title;
+        problem.uniquename = uniquename;
+      }
     }
-  );
+    problem.description = req.body.description;
+    problem.difficulty = req.body.difficulty;
+    problem.jsmain = req.body.jsmain;
+    problem.cmain = req.body.cmain;
+    problem.javamain = req.body.javamain;
+    problem.active = req.body.active;
+
+    problem.updateToDB();
+    return res.status(200).send(problem);
+  }
+  return res.status(404).send("No problem found");
 };
 
-exports.question_delete = function (req, res, next) {
+/*exports.question_delete = function (req, res, next) {
   //SleepUtil.sleep();
   Question.findByIdAndRemove(req.params.id, function (err, question) {
     if (err) return next(err);
@@ -117,12 +122,11 @@ exports.question_delete = function (req, res, next) {
 };*/
 
 exports.question_all = async function (req, res, next) {
-  let problems;
   try {
-    problems = await Problem.getAllActiveQuestionsMinimal();
+    const problemsArray = await Problem.getAllActiveQuestionsMinimal();
+    res.status(200).send(problemsArray);
   } catch (err) {
     res.status(422).json({ errors: [error] });
     return next(err);
   }
-  res.status(200).send(problems);
 };

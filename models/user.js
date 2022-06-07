@@ -74,7 +74,7 @@ module.exports = class User {
     let data = await db.query("SELECT * FROM public.user WHERE email = $1", [
       email,
     ]);
-    if (data.rows[0]) {
+    if (data.rowCount != 0) {
       let user = User.createUserFromObject(data.rows[0]);
       return user;
     } else {
@@ -84,7 +84,7 @@ module.exports = class User {
 
   static async findUserById(id) {
     let data = await db.query("SELECT * FROM public.user WHERE id = $1", [id]);
-    if (data.rows[0]) {
+    if (data.rowCount != 0) {
       let user = User.createUserFromObject(data.rows[0]);
       return user;
     } else {
@@ -101,8 +101,9 @@ module.exports = class User {
       obj.role
     );
     user.timecreated = obj.timecreated;
-    user.hash = obj.hash;
-    user.salt = obj.salt;
+    if (obj.id) user.id = obj.id;
+    /*user.hash = obj.hash;
+    user.salt = obj.salt;*/
     return user;
   }
 

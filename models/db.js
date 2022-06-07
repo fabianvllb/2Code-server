@@ -20,7 +20,14 @@ pool.connect((err) => {
 
 module.exports = {
   query: async (text, params) => {
-    return await pool.query(text, params);
+    try {
+      const res = await pool.query(text, params);
+      console.log(res.rows[0]);
+      return res;
+    } catch (err) {
+      console.log(err.stack);
+      return err;
+    }
   },
 };
 
