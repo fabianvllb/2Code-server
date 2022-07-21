@@ -37,6 +37,7 @@ module.exports = {
     const runner = factory.createRunner(lang.toLowerCase());
 
     // copy all files in the question folder from solution folder
+    // TODO get questions from database instead of directory
     const sourceDir = path.resolve(`${appRoot}`, "solution", question);
     const targetDir = path.resolve(
       `${appRoot}`,

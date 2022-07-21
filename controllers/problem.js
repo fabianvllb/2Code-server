@@ -60,7 +60,11 @@ exports.question_create = async function (req, res, next) {
 exports.question_readone = async function (req, res, next) {
   try {
     const problem = await Problem.findProblemById(req.params.id);
-    res.status(200).send(problem);
+    if (problem) {
+      res.status(200).send(problem);
+    } else {
+      res.status(404).json({ errors: ["No user for given id"] });
+    }
   } catch (err) {
     res.status(422).json({ errors: [err] });
     return next(err);
