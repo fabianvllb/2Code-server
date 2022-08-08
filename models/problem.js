@@ -17,11 +17,13 @@ module.exports = class Problem {
   this.createdAt;
   let active;*/
 
-  constructor(title, description, authorid, difficulty) {
+  constructor(title, description, help, tests, authorid, difficulty) {
     this.id = undefined;
     this.title = title;
     this.uniquename = Problem.stringToUniqueName(title);
     this.description = description;
+    this.help = help;
+    this.tests = tests;
     this.authorid = authorid;
     this.jsmain = "";
     this.cmain = "";
@@ -33,11 +35,13 @@ module.exports = class Problem {
 
   async insertToDB() {
     let res = await db.query(
-      "INSERT INTO public.problem (title, uniquename, description, authorid, jsmain, cmain, javamain, difficulty, timecreated, active) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+      "INSERT INTO public.problem (title, uniquename, description, help, tests, authorid, jsmain, cmain, javamain, difficulty, timecreated, active) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
       [
         this.title,
         this.uniquename,
         this.description,
+        this.help,
+        this.tests,
         this.authorid,
         this.jsmain,
         this.cmain,
@@ -52,11 +56,13 @@ module.exports = class Problem {
 
   async updateToDB() {
     let res = await db.query(
-      "UPDATE public.problem SET title = $1, uniquename = $2, description = $3, jsmain = $4, cmain = $5, javamain = $6, difficulty = $7, active = $8 WHERE id = $9",
+      "UPDATE public.problem SET title = $1, uniquename = $2, description = $3, help = $4, tests = $5, jsmain = $6, cmain = $7, javamain = $8, difficulty = $9, active = $10 WHERE id = $11",
       [
         this.title,
         this.uniquename,
         this.description,
+        this.help,
+        this.tests,
         this.jsmain,
         this.cmain,
         this.javamain,

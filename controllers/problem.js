@@ -8,9 +8,18 @@ const User = require("../models/user");
 //const prisma = new PrismaClient();
 
 exports.question_create = async function (req, res, next) {
-  let authorUser = await User.findUserById(req.body.userid);
+  /*console.log("problem creation request:");
+  console.log(req.body.title);
+  console.log(req.body.description);
+  console.log(req.body.help);
+  console.log(req.body.tests);
+  console.log(req.body.difficulty);*/
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
 
-  //console.log(authorUser);
+  let authorUser = await User.findUserById(req.body.userid);
 
   // If author doesn't exist
   if (!authorUser) {
@@ -21,7 +30,7 @@ exports.question_create = async function (req, res, next) {
       req.body.userid,
       "User not found"
     );
-    return res.status(400).json({ errors: [error] });
+    return res.status(422).json({ errors: [error] });
   }
   //console.log("author id: ", authorUser.id);
   // Check if problem's uniquename is not in use
@@ -35,13 +44,15 @@ exports.question_create = async function (req, res, next) {
       "body",
       "title",
       req.body.title,
-      "Uniquename ya existe"
+      "Uniquename already exists"
     );
     res.status(422).json({ errors: [error] });
   } else {
     newProblem = new Problem(
       req.body.title,
       req.body.description,
+      req.body.help,
+      req.body.tests,
       authorUser.id,
       req.body.difficulty
     );
