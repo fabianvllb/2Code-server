@@ -19,7 +19,7 @@ exports.question_create = async function (req, res, next) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  let authorUser = await User.findUserById(req.body.userid);
+  let authorUser = await User.findUserByEmail(req.body.useremail);
 
   // If author doesn't exist
   if (!authorUser) {
@@ -60,7 +60,7 @@ exports.question_create = async function (req, res, next) {
     newProblem.cmain = req.body.cmain;
     newProblem.javamain = req.body.javamain;
     newProblem.timecreated = DateTime.now().toISO();
-    newProblem.active = true;
+    newProblem.active = req.body.active;
 
     // probamos a almacenar el nuevo problema en la base de datos
     newProblem.insertToDB();
@@ -98,6 +98,32 @@ exports.question_update = async function (req, res, next) {
     return next(err);
   }
   if (problem) {
+    //check if modifying user id matches author's id
+    try {
+      const updatingUser = await User.findUserByEmail(req.body.useremail);
+
+      if (updatingUser) {
+        if (updatingUser.id != problem.authorid) {
+          var error = new ValidationError(
+            "body",
+            "useremail",
+            req.body.useremail,
+            "Modifying user is not problem's author"
+          );
+          return res.status(401).json({ errors: [error] });
+        }
+      } else {
+        var error = new ValidationError(
+          "body",
+          "useremail",
+          req.body.useremail,
+          "Modifying user could not be found"
+        );
+        return res.status(401).json({ errors: [error] });
+      }
+    } catch (err) {
+      console.error(err);
+    }
     if (problem.title != req.body.title) {
       let uniquename = Problem.stringToUniqueName(req.body.title);
       let otherProblem = await Problem.findByUniquename(uniquename);
@@ -116,6 +142,8 @@ exports.question_update = async function (req, res, next) {
       }
     }
     problem.description = req.body.description;
+    problem.help = req.body.help;
+    problem.tests = req.body.tests;
     problem.difficulty = req.body.difficulty;
     problem.jsmain = req.body.jsmain;
     problem.cmain = req.body.cmain;
@@ -123,9 +151,10 @@ exports.question_update = async function (req, res, next) {
     problem.active = req.body.active;
 
     problem.updateToDB();
-    return res.status(200).send(problem);
+    res.status(200).json({ status: "UPDATE" });
+  } else {
+    return res.status(404).send("No problem found");
   }
-  return res.status(404).send("No problem found");
 };
 
 /*exports.question_delete = function (req, res, next) {

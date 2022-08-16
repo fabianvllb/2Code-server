@@ -75,6 +75,8 @@ module.exports = class User {
       email,
     ]);
     if (data.rowCount != 0) {
+      //User.createUserFromObject doesn't create a new user on the database.
+      //It converts the obtained generic object returned by postgres into a User class object
       let user = User.createUserFromObject(data.rows[0]);
       return user;
     } else {
@@ -85,6 +87,8 @@ module.exports = class User {
   static async findUserById(id) {
     let data = await db.query("SELECT * FROM public.user WHERE id = $1", [id]);
     if (data.rowCount != 0) {
+      //User.createUserFromObject doesn't create a new user on the database.
+      //It converts the obtained generic object returned by postgres into a User class object
       let user = User.createUserFromObject(data.rows[0]);
       return user;
     } else {
@@ -92,6 +96,16 @@ module.exports = class User {
     }
   }
 
+  static async getAllUserProblems(userid) {
+    let data = await db.query(
+      "SELECT id,title,description,difficulty,active,timecreated FROM public.problem WHERE authorid = $1",
+      [userid]
+    );
+    return data.rows;
+  }
+
+  //User.createUserFromObject doesn't create a new user on the database.
+  //It converts the obtained generic object returned by postgres into a User class object
   static createUserFromObject(obj) {
     let user = new User(
       obj.email,

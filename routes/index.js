@@ -4,6 +4,7 @@ const config = require("../config/server-config");
 const authentication = require("./authentication");
 const problem = require("./problem");
 const submission = require("./submission");
+const user = require("./user");
 
 const {
   app: { secret },
@@ -35,5 +36,6 @@ router.use("/submission", submission);*/
 router.use("/authentication", authentication);
 router.use("/problem", problem);
 router.use("/submission", submission);
+router.use("/user", user);
 
 module.exports = router;

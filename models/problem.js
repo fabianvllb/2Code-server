@@ -82,7 +82,7 @@ module.exports = class Problem {
         [id]
       );
       if (data.rowCount != 0) {
-        let problem = Problem.createProblemFromObject(data.rows[0]);
+        const problem = Problem.createProblemFromObject(data.rows[0]);
         return problem;
       } else {
         return null;
@@ -109,6 +109,8 @@ module.exports = class Problem {
     let problem = new Problem(
       obj.title,
       obj.description,
+      obj.help,
+      obj.tests,
       obj.authorid,
       obj.difficulty
     );
@@ -143,7 +145,7 @@ module.exports = class Problem {
   static async getAllActiveQuestionsMinimal() {
     try {
       const data = await db.query(
-        "SELECT id, title, difficulty FROM public.problem",
+        "SELECT id, title, difficulty FROM public.problem WHERE active=true",
         []
       );
       if (data) {
