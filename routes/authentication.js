@@ -11,17 +11,17 @@ router.post(
   "/signup",
   [
     // check email
-    //check("email").isEmail().withMessage("La direccion email es invalida"),
+    /*check("email").isEmail().withMessage("La direccion email es invalida"),
     // check username
-    /*check("username")
+    check("username")
       .isLength({ min: 4 })
-      .withMessage("El nombre de usuario debe ser de al menos 4 caracteres"),*/
+      .withMessage("El nombre de usuario debe ser de al menos 4 caracteres"),
     // check password
-    /*check("password")
+    check("password")
       .isLength({ min: 6 })
-      .withMessage("La contrasena debe ser de al menos 6 caracteres")
+      .withMessage("La contraseña debe ser de al menos 6 caracteres")
       .matches(/\d/)
-      .withMessage("La contrasena debe contener al menos un numero"),*/
+      .withMessage("La contraseña debe contener al menos un numero"),*/
   ],
   //[body("email").isEmail(), body("password").isLength({ min: 5 })],
   authentication_controller.signup

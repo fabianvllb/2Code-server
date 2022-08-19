@@ -13,7 +13,6 @@ module.exports.signup = async function (req, res) {
     // return if validation fails
     return res.status(400).json({ errors: errors.array() });
   }*/
-
   let user = await User.findUserByEmail(req.body.email);
 
   if (user) {
@@ -36,28 +35,13 @@ module.exports.signup = async function (req, res) {
       arr[0],
       "user"
     );
-    // set hash, salt and add time of creation
-    //user.setPassword(req.body.password);
     user.timecreated = DateTime.now().toISO();
-    //console.log(user);
-    let result = await user.insertToDB(); /*(err, row) => {
-      if (err) {
-        console.log(err);
-        return res.status(500).json({ errors: err });
-      }
-      //let token = user.generateJwt();
-      //res.status(201);
-      /*res.json({
-        token,
-      });*/ /*
-      res.status(201).json(row);
-    });*/
-    if (result == 1) {
-      res.status(201).send("User created");
-      // TODO We proceed to log in
-    } else {
-      res.status(500).send("Couldn't create user");
+
+    const rowsCreated = await user.insertToDB();
+    if (rowsCreated == 0) {
+      return res.status(409).json({ errors: ["signup: Cound't create user"] });
     }
+    res.status(201).json({ status: "CREATE" });
   }
 };
 
