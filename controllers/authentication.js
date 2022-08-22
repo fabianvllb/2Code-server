@@ -6,8 +6,6 @@ const User = require("../models/user");
 const { DateTime } = require("luxon");
 
 module.exports.signup = async function (req, res) {
-  //SleepUtil.sleep();
-  // get the validation result which is defined in router
   /*const errors = validationResult(req);
   if (!errors.isEmpty()) {
     // return if validation fails
@@ -62,35 +60,46 @@ module.exports.login = async function (req, res) {
       "body",
       "email",
       req.body.email,
-      "This email is not registered."
+      "Este email no está registrado"
+    );
+    return res.status(400).json({ errors: [error] });
+  }
+  // An account with this email has been found
+  if (user.role != "user") {
+    // user is admin
+    var error = new ValidationError(
+      "body",
+      "email",
+      req.body.email,
+      "Este email no está registrado"
+    );
+    return res.status(400).json({ errors: [error] });
+  }
+  // An account with this email has been found then:
+  res.status(200).json({ status: "SIGNED" }); /*
+  /*if (!user.isCorrectPassword(req.body.password)) {
+    // Typed password does not match
+    var error = new ValidationError(
+      "body",
+      "password",
+      req.body.email,
+      "Incorrect password."
     );
     return res.status(400).json({ errors: [error] });
   } else {
-    // An account with this email has been found
-    if (!user.isCorrectPassword(req.body.password)) {
-      // Typed password does not match
-      var error = new ValidationError(
-        "body",
-        "password",
-        req.body.email,
-        "Incorrect password."
-      );
-      return res.status(400).json({ errors: [error] });
-    } else {
-      // TODO Password matches, we proceed to log in
-      res.status(200).send("Logged in");
-    } /*
-    /*(err, row) => {
-      if (err) {
-        console.log(err);
-        return res.status(500).json({ errors: err });
-      }
-      //let token = user.generateJwt();
-      //res.status(201);
-      /*res.json({
-        token,
-      });*/
-  }
+    // TODO Password matches, we proceed to log in
+    res.status(200).send("Logged in");
+  }*/
+  /*(err, row) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).json({ errors: err });
+    }
+    //let token = user.generateJwt();
+    //res.status(201);
+    /*res.json({
+      token,
+    });*/
 };
 
 module.exports.logout = function (req, res) {
