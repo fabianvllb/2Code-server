@@ -5,6 +5,7 @@ const authentication = require("./authentication");
 const problem = require("./problem");
 const submission = require("./submission");
 const user = require("./user");
+const admin = require("./admin");
 
 const {
   app: { secret },
@@ -37,5 +38,6 @@ router.use("/authentication", authentication);
 router.use("/problem", problem);
 router.use("/submission", submission);
 router.use("/user", user);
+router.use("/admin", admin);
 
 module.exports = router;
