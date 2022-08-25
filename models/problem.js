@@ -88,7 +88,7 @@ module.exports = class Problem {
         return null;
       }
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 

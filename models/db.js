@@ -26,7 +26,7 @@ module.exports = {
       return res;
     } catch (err) {
       //console.log(err.stack);
-      return err;
+      throw err;
     }
   },
 };

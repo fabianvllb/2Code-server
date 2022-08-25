@@ -23,17 +23,6 @@ router.get("/", function (req, res) {
   res.json({ message: "Welcome to 2Code api!" });
 });
 
-// authentication, url: /api/authentication/login
-/*router.use("/authentication", authentication);
-// question, url: /api/admin/question
-router.use("/admin/question", auth, question);
-// user, url: /api/admin/user
-router.use("/admin/user", auth, user);
-// database, url: /api/admin/database
-router.use("/admin/database", database);
-// submission, url: /api/submission
-router.use("/submission", submission);*/
-
 router.use("/authentication", authentication);
 router.use("/problem", problem);
 router.use("/submission", submission);

@@ -10,7 +10,9 @@ router.get("/problems", submission_controller.problem_all);
 // submissions
 router.post("/", submission_controller.submission_create);
 
-router.get("/:id", submission_controller.submission_readone);
+router.post("/data", submission_controller.submission_readone);
+
+//router.get("/:id", submission_controller.submission_readone);
 
 //router.put("/:id", submission_controller.submission_update);
 

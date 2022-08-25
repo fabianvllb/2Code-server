@@ -1,7 +1,9 @@
 const Submission = require("../models/submission");
 const Problem = require("../models/problem");
+const User = require("../models/user");
 const { DateTime } = require("luxon");
 const RunnerManager = require("../judgingengine/RunnerManager");
+const ValidationError = require("../models/validationerror");
 /*const Question = require("../models/question");
 const ValidationError = require("../models/validationerror");
 const ErrorUtil = require("../utils/").ErrorUtil;
@@ -18,7 +20,7 @@ exports.problem_all = async function (req, res, next) {
 exports.submission_create = async function (req, res, next) {
   let submission;
   // Search existing submission
-  try {
+  /*try {
     submission = await Submission.find({
       authorId: parseInt(req.body.userid),
       problemId: parseInt(req.body.problemid),
@@ -45,16 +47,45 @@ exports.submission_create = async function (req, res, next) {
     // 2. Save new submission
     submission.create();
   }
-  res.status(200).send(submission);
+  res.status(200).send(submission);*/
 };
 
-exports.submission_readone = function (req, res, next) {
-  Submission.findById(parseInt(req.params.id), function (err, submission) {
+exports.submission_readone = async function (req, res, next) {
+  try {
+    const user = await User.findUserByEmail(req.body.email);
+    if (!user) {
+      var error = new ValidationError(
+        "body",
+        "email",
+        req.body.email,
+        "USER_NOT_FOUND"
+      );
+      return res.status(404).json({ errors: [error] });
+    }
+
+    const submission = await Submission.findLastSubmissionForProblem(
+      req.body.problemId,
+      user.id,
+      "javascript"
+    );
+    if (!submission) {
+      // no submission for this user and problem is found
+      return res
+        .status(200)
+        .json({ msg: "NO_SUBMISSION_FOUND", submission: submission });
+    }
+    res.status(200).json({ msg: "RETRIEVED", submission: submission });
+  } catch (err) {
+    res.status(422).json({ errors: [err] });
+    return next(err);
+  }
+
+  /*Submission.findById(parseInt(req.params.id), function (err, submission) {
     if (err) {
       return next(err);
     }
     res.status(200).send(submission);
-  });
+  });*/
 };
 /*
 exports.submission_update = function(req, res, next) {
@@ -158,27 +189,104 @@ exports.submission_all = function(req, res, next) {
     });
 };*/
 
+/**
+ * Retrieves all the data needed for compiling and running the submited code (submission).
+ * If all the data is correctly retrieved then run function is called.
+ * Mandatory params:
+ * @param {string} code - The code submited by the user.
+ * @param {number} problemId - The problem's id.
+ * @param {string} language - The language of the submited code.
+ * @param {string} userEmail - The user's email.
+ */
 exports.submission_run = async function (req, res, next) {
-  /**
-   * Mandatory: userid, problemid, language
-   * Optional: solution
-   */
   console.log("**submission_run starts**");
-  let submission;
-  // Search existing submission
-  //try {
-  submission = await Submission.find({
+  try {
+    // Search user id:
+    const user = await User.findUserByEmail(req.body.email);
+    if (!user) {
+      // If user doesn't exist
+      var error = new ValidationError(
+        "body",
+        "email",
+        req.body.email,
+        "USER_NOT_FOUND"
+      );
+      return res.status(404).json({ errors: [error] });
+    }
+
+    // Find submission's problem
+    let problem = await Problem.findProblemById(parseInt(req.body.problemId));
+    if (!problem) {
+      var error = new ValidationError(
+        "body",
+        "problemId",
+        req.body.problemId,
+        "PROBLEM_NOT_FOUND"
+      );
+      return res.status(404).json({ errors: [error] });
+    }
+
+    // Search existing submission
+    let submission = await Submission.findSubmissionByLanguageAndStatus(
+      req.body.problemId,
+      req.body.language,
+      user.id,
+      "pending"
+    );
+    if (!submission) {
+      // If no submission is found
+      console.log("No submission was found!");
+      // Create new submission
+      submission = new Submission(
+        req.body.problemId,
+        req.body.language,
+        user.id,
+        req.body.code,
+        "pending" // not submitted -> just created
+      );
+      submission.timeupdated = DateTime.now().toISO(); //.toFormat("yyyy'-'LL'-'dd'T'HH':'mm':'ss'.'u'Z'"),
+      submission.timesubmitted = DateTime.now().toISO(); //.toFormat("yyyy'-'LL'-'dd'T'HH':'mm':'ss'.'u'Z'")
+      // Save new submission
+      //submission.create();
+      try {
+        const rowCount = await submission.insertToDB();
+        console.log("rowCount: ", rowCount);
+      } catch (err) {
+        return res.status(500).json({ errors: [err] });
+      }
+    } else {
+      // If submission exists
+      console.log("A submission was found!");
+      // Update solution
+      submission.solution = req.body.code;
+      submission.timeupdated = DateTime.now().toISO();
+      //submission.update(null);
+      try {
+        const rowCount = await submission.updateToDB();
+        console.log("rowCount: ", rowCount);
+      } catch (err) {
+        return res.status(500).json({ errors: [err] });
+      }
+    }
+
+    // Run submission
+    run(res, submission, problem);
+    //run(req, res, next, submission, problem.uniquename);
+  } catch (err) {
+    res.status(422).json({ errors: [err] });
+  }
+  /*submission = await Submission.find({
     authorId: parseInt(req.body.userid),
     problemId: parseInt(req.body.problemid),
     language: req.body.language,
     status: "initial",
-  });
-  /*} catch (err) {
-    res.status(422).json({ errors: [err] });
-    return next(err);
-  }*/
+  });*/
+  // } catch (err) {
+  //   res.status(422).json({ errors: [err] });
+  //   return next(err);
+  // }
 
-  if (!submission) {
+  /*if (!submission) {
     // If no submission is found
     console.log("No submission was found!");
     // Create new submission
@@ -212,37 +320,61 @@ exports.submission_run = async function (req, res, next) {
   );
 
   // Run submission
-  run(req, res, next, submission, problemUniquename);
+  run(req, res, next, submission, problemUniquename);*/
   //res.status(200).send(submission);
 };
 
-function run(req, res, next, submission, problemUniquename) {
+/**
+ * Starts the runtime timer and calls RunnerManager's run function.
+ * A callback function is passed to RunnerManager's run function to update the submission in the DDBB.
+ * Finally, an API response is sent.
+ * @param {} req
+ * @param {*} res
+ * @param {*} next
+ * @param {*} submission
+ * @param {*} problemUniquename
+ */
+//function run(req, res, next, submission, problemUniquename) {
+function run(res, submission, problem) {
   console.log("**Starting run function in submission.js**");
+
   // 1. Start runtime timer
-  var start = DateTime.now();
+  let start = DateTime.now();
 
   // 2. Then, run the solution to get the test result
-  RunnerManager.run(
+  /*RunnerManager.run(
     problemUniquename,
     submission.language,
-    submission.solution,
-    function (status, message) {
-      let result = {
-        status,
-        message,
-      };
-      console.log(status);
-      if (status == "pass" || status == "fail") {
-        var end = DateTime.now();
-
-        var ms = end.diff(start, ["seconds", "milliseconds"]);
-        console.log("Runtime: ", ms.toObject());
-        /*var ms = moment(end, "DD/MM/YYYY HH:mm:ss").diff(
+    submission.solution,*/
+  RunnerManager.run(submission, problem, function (status, message) {
+    let result = {
+      status,
+      message,
+    };
+    console.log(status);
+    if (status == "pass" || status == "fail") {
+      let end = DateTime.now();
+      let ms = end.diff(start, ["seconds", "milliseconds"]);
+      console.log("Runtime: ", ms.toObject());
+      /*var ms = moment(end, "DD/MM/YYYY HH:mm:ss").diff(
           moment(start, "DD/MM/YYYY HH:mm:ss")
         );*/
 
-        // 3. Find the submission
-        Submission.findById(submission.id, function (err, submission) {
+      // 3. Find the submission
+      submission.status = status;
+      submission.runtime = ms.seconds + ms.milliseconds / 1000;
+      submission.timesubmitted = DateTime.now().toISO();
+
+      console.log(submission);
+      // 4. Update the submission
+      try {
+        submission.updateToDB();
+      } catch (err) {
+        return res.status(422).json({ errors: [err] });
+      }
+      // 5. Send results to client
+      return res.status(200).json(result);
+      /*Submission.findSubmissionById(submission.id, function (err, submission) {
           // update status
           submission.status = status;
           submission.runtime = ms.seconds + ms.milliseconds / 1000;
@@ -259,12 +391,11 @@ function run(req, res, next, submission, problemUniquename) {
             res.status(422).json({ errors: [err] });
             return next(err);
           }
-        });
-      } else {
-        res.end(JSON.stringify(result));
-      }
+        });*/
+    } else {
+      return res.status(500).json(result);
     }
-  );
+  });
 } /*
 
 /*exports.question_findByKeys = function(req, res, next) {

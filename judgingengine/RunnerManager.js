@@ -9,45 +9,68 @@ const appRoot = require("app-root-path");
 const { DateTime } = require("luxon");
 const os = require("os");
 
-function Factory() {
-  this.createRunner = function createRunner(lang) {
-    let runner;
+class Factory {
+  constructor() {
+    this.createRunner = function createRunner(lang) {
+      let runner;
 
-    if (lang === "c") {
-      runner = new CRunner();
-    } else if (lang === "c++") {
-      runner = new CppRunner();
-    } else if (lang === "java") {
-      runner = new JavaRunner();
-    } else if (lang === "javascript") {
-      runner = new JavaScriptRunner();
-    } else if (lang === "python") {
-      runner = new PythonRunner();
-    }
+      if (lang === "javascript") {
+        runner = new JavaScriptRunner();
+      } else if (lang === "c") {
+        runner = new CRunner();
+      } else if (lang === "c++") {
+        runner = new CppRunner();
+      } else if (lang === "java") {
+        runner = new JavaRunner();
+      } else if (lang === "python") {
+        runner = new PythonRunner();
+      }
 
-    return runner;
-  };
+      return runner;
+    };
+  }
 }
+/**
+ *
+ * @param {*} question
+ * @param {*} lang
+ * @param {*} solution
+ * @param {*} callback
+ */
+//exports.run = function (question, lang, solution, callback) { //uniquename, language, solution y callback
+exports.run = function (submission, problem, callback) {
+  console.log("**Starting run function in RunnerManager.js**");
 
-module.exports = {
-  run(question, lang, solution, callback) {
-    console.log("**Starting run function in RunnerManager.js**");
-    //console.log(question);
-    const factory = new Factory();
-    const runner = factory.createRunner(lang.toLowerCase());
+  const factory = new Factory();
+  const runner = factory.createRunner(submission.language.toLowerCase());
 
-    // copy all files in the question folder from solution folder
-    // TODO get questions from database instead of directory
-    const sourceDir = path.resolve(`${appRoot}`, "solution", question);
-    const targetDir = path.resolve(
-      `${appRoot}`,
-      "judgingengine",
-      "temp",
-      question + "_" + lang + "_" + DateTime.now().toISO().substring(0, 23) // 2022-02-03T22:44:30.652 on local server time
-    );
+  const sourceDir = path.resolve(`${appRoot}`, "solution", problem.uniquename);
+  const targetDir = path.resolve(
+    `${appRoot}`,
+    "judgingengine",
+    "temp",
+    problem.uniquename +
+      "_" +
+      submission.language +
+      "_" +
+      DateTime.now().toISO().substring(0, 23) // 2022-02-03T22:44:30.652 on local server time
+  );
 
-    // copy source code files
-    FileApi.copyDirectory(path.join(sourceDir, lang), targetDir, (err) => {
+  // copy all files from solution folder to temp/question folder
+  // TODO get questions from database instead of directory
+  /*const sourceDir = path.resolve(`${appRoot}`, "solution", question);
+  const targetDir = path.resolve(
+    `${appRoot}`,
+    "judgingengine",
+    "temp",
+    question + "_" + lang + "_" + DateTime.now().toISO().substring(0, 23) // 2022-02-03T22:44:30.652 on local server time
+  );*/
+
+  // copy source code files
+  FileApi.copyDirectory(
+    path.join(sourceDir, submission.language),
+    targetDir,
+    (err) => {
       if (err) {
         callback("99", String(err)); // 99, system error
       }
@@ -58,30 +81,35 @@ module.exports = {
         path.join(sourceDir, "testcase.txt"),
         testcaseFile,
         (err) => {
+          let readyToExportSolution;
           if (err) {
             callback("99", String(err)); // 99, system error
           }
-          // save the solution to Solution.java/Solution.js/Solution.c
+          // save the solution to Solution.js/Solution.java/Solution.c
           const sourceFile = path.resolve(targetDir, runner.sourceFile());
           //console.log(`source file: ${sourceFile}`);
-          const filename = path.parse(sourceFile).name; // main or Solution.java in this case
-          const extension = path.parse(sourceFile).ext; // .java
+          const filename = path.parse(sourceFile).name; // main or Solution.js in this case
+          const extension = path.parse(sourceFile).ext; // .js
           //console.log(`filename: ${filename}`);
           //console.log(`extension: ${extension}`);
 
-          // Obtain method name and export it
-          if (lang == "javascript") {
+          // If language is javascript then write at the end of solution the method name and export it
+          if (submission.language == "javascript") {
             //TODO upgrade method finding.
             // get method name i.e: twoSum
-            const method = solution
-              .substring(solution.indexOf("var") + 4, solution.indexOf("="))
+            const method = submission.solution
+              .substring(
+                submission.solution.indexOf("var") + 4,
+                submission.solution.indexOf("=")
+              )
               .trim();
             // add to module exports
-            solution = solution + "; " + "module.exports = " + method + ";";
+            readyToExportSolution =
+              submission.solution + "; " + "module.exports = " + method + ";";
             //solution = solution + os.EOL + " module.exports = reverseString;";
           }
-          // We save Solution.java with its modified content
-          FileApi.saveFile(sourceFile, solution, () => {
+          // We save Solution.js with its modified content
+          FileApi.saveFile(sourceFile, readyToExportSolution, () => {
             const testFile = path.resolve(targetDir, runner.testFile());
             const testFileName = path.parse(testFile).name; // main or SolutionTester in this case
             runner.run(
@@ -107,6 +135,6 @@ module.exports = {
           });
         }
       );
-    });
-  },
+    }
+  );
 };

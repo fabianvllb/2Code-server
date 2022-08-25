@@ -3,17 +3,8 @@ const ValidationError = require("../models/validationerror");
 const Problem = require("../models/problem");
 const { DateTime } = require("luxon");
 const User = require("../models/user");
-//const { PrismaClient, Prisma } = require("@prisma/client");
-
-//const prisma = new PrismaClient();
 
 exports.question_create = async function (req, res, next) {
-  /*console.log("problem creation request:");
-  console.log(req.body.title);
-  console.log(req.body.description);
-  console.log(req.body.help);
-  console.log(req.body.tests);
-  console.log(req.body.difficulty);*/
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -21,8 +12,8 @@ exports.question_create = async function (req, res, next) {
 
   let authorUser = await User.findUserByEmail(req.body.useremail);
 
-  // If author doesn't exist
   if (!authorUser) {
+    // If author doesn't exist
     console.log("error: author ID not found");
     var error = new ValidationError(
       "body",
@@ -32,14 +23,12 @@ exports.question_create = async function (req, res, next) {
     );
     return res.status(422).json({ errors: [error] });
   }
-  //console.log("author id: ", authorUser.id);
   // Check if problem's uniquename is not in use
   let uniquename = Problem.stringToUniqueName(req.body.title);
   let newProblem = await Problem.findByUniquename(uniquename);
 
-  //console.log(newProblem);
-
   if (newProblem) {
+    // if a problem with same uniquename exists
     var error = new ValidationError(
       "body",
       "title",
@@ -56,6 +45,7 @@ exports.question_create = async function (req, res, next) {
       authorUser.id,
       req.body.difficulty
     );
+    //TODO arreglar estos
     newProblem.jsmain = req.body.jsmain;
     newProblem.cmain = req.body.cmain;
     newProblem.javamain = req.body.javamain;
