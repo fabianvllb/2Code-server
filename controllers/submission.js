@@ -199,7 +199,7 @@ exports.submission_all = function(req, res, next) {
  * @param {string} userEmail - The user's email.
  */
 exports.submission_run = async function (req, res, next) {
-  console.log("**submission_run starts**");
+  //console.log("**submission_run starts**");
   try {
     // Search user id:
     const user = await User.findUserByEmail(req.body.email);
@@ -235,7 +235,7 @@ exports.submission_run = async function (req, res, next) {
     );
     if (!submission) {
       // If no submission is found
-      console.log("No submission was found!");
+      //console.log("No pending submission was found!");
       // Create new submission
       submission = new Submission(
         req.body.problemId,
@@ -244,26 +244,28 @@ exports.submission_run = async function (req, res, next) {
         req.body.code,
         "pending" // not submitted -> just created
       );
-      submission.timeupdated = DateTime.now().toISO(); //.toFormat("yyyy'-'LL'-'dd'T'HH':'mm':'ss'.'u'Z'"),
-      submission.timesubmitted = DateTime.now().toISO(); //.toFormat("yyyy'-'LL'-'dd'T'HH':'mm':'ss'.'u'Z'")
       // Save new submission
-      //submission.create();
       try {
         const rowCount = await submission.insertToDB();
-        console.log("rowCount: ", rowCount);
+        //console.log("rowCount: ", rowCount);
       } catch (err) {
         return res.status(500).json({ errors: [err] });
       }
+
+      //fetch submission again because we need (and don't currently have) the submission's id.
+      submission = await Submission.findSubmissionByLanguageAndStatus(
+        req.body.problemId,
+        req.body.language,
+        user.id,
+        "pending"
+      );
     } else {
-      // If submission exists
-      console.log("A submission was found!");
-      // Update solution
+      // If submission exists update solution
+      //console.log("A submission was found!");
       submission.solution = req.body.code;
-      submission.timeupdated = DateTime.now().toISO();
-      //submission.update(null);
       try {
-        const rowCount = await submission.updateToDB();
-        console.log("rowCount: ", rowCount);
+        await submission.updateToDB();
+        //console.log("rowCount: ", rowCount);
       } catch (err) {
         return res.status(500).json({ errors: [err] });
       }
@@ -275,53 +277,6 @@ exports.submission_run = async function (req, res, next) {
   } catch (err) {
     res.status(422).json({ errors: [err] });
   }
-  /*submission = await Submission.find({
-    authorId: parseInt(req.body.userid),
-    problemId: parseInt(req.body.problemid),
-    language: req.body.language,
-    status: "initial",
-  });*/
-  // } catch (err) {
-  //   res.status(422).json({ errors: [err] });
-  //   return next(err);
-  // }
-
-  /*if (!submission) {
-    // If no submission is found
-    console.log("No submission was found!");
-    // Create new submission
-    submission = new Submission(
-      parseInt(req.body.userid),
-      parseInt(req.body.problemid),
-      req.body.solution,
-      req.body.language,
-      "initial", // not submitted -> just created
-      DateTime.now().toISO(), //.toFormat("yyyy'-'LL'-'dd'T'HH':'mm':'ss'.'u'Z'"),
-      DateTime.now().toISO() //.toFormat("yyyy'-'LL'-'dd'T'HH':'mm':'ss'.'u'Z'")
-    );
-    // Save new submission
-    submission.create();
-  } else {
-    // If submission exists
-    console.log("A submission was found!");
-    // Update solution
-    submission.solution = req.body.solution;
-    submission.timeupdated = DateTime.now().toISO();
-    try {
-      submission.update(null);
-    } catch (err) {
-      res.status(422).json({ errors: [err] });
-      return next(err);
-    }
-  }
-  // Find submission's problem
-  let problemUniquename = await Problem.getProblemUniquenameById(
-    parseInt(req.body.problemid)
-  );
-
-  // Run submission
-  run(req, res, next, submission, problemUniquename);*/
-  //res.status(200).send(submission);
 };
 
 /**
@@ -336,62 +291,37 @@ exports.submission_run = async function (req, res, next) {
  */
 //function run(req, res, next, submission, problemUniquename) {
 function run(res, submission, problem) {
-  console.log("**Starting run function in submission.js**");
+  //console.log("**Starting run function in submission.js**");
 
   // 1. Start runtime timer
   let start = DateTime.now();
 
   // 2. Then, run the solution to get the test result
-  /*RunnerManager.run(
-    problemUniquename,
-    submission.language,
-    submission.solution,*/
-  RunnerManager.run(submission, problem, function (status, message) {
+  RunnerManager.run(submission, problem, async function (status, message) {
+    //console.log("--Controller callback--");
     let result = {
       status,
       message,
     };
-    console.log(status);
+    console.log("status:", status);
     if (status == "pass" || status == "fail") {
       let end = DateTime.now();
       let ms = end.diff(start, ["seconds", "milliseconds"]);
       console.log("Runtime: ", ms.toObject());
-      /*var ms = moment(end, "DD/MM/YYYY HH:mm:ss").diff(
-          moment(start, "DD/MM/YYYY HH:mm:ss")
-        );*/
 
       // 3. Find the submission
       submission.status = status;
       submission.runtime = ms.seconds + ms.milliseconds / 1000;
-      submission.timesubmitted = DateTime.now().toISO();
 
-      console.log(submission);
       // 4. Update the submission
       try {
-        submission.updateToDB();
+        await submission.updateToDB();
       } catch (err) {
         return res.status(422).json({ errors: [err] });
       }
+
       // 5. Send results to client
       return res.status(200).json(result);
-      /*Submission.findSubmissionById(submission.id, function (err, submission) {
-          // update status
-          submission.status = status;
-          submission.runtime = ms.seconds + ms.milliseconds / 1000;
-          submission.timesubmitted = DateTime.now().toISO();
-
-          console.log(submission);
-          // 4. Update the submission
-          try {
-            submission.update(function (err) {
-              if (err) return next(err);
-              res.end(JSON.stringify(result));
-            });
-          } catch (err) {
-            res.status(422).json({ errors: [err] });
-            return next(err);
-          }
-        });*/
     } else {
       return res.status(500).json(result);
     }

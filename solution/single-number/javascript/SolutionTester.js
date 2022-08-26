@@ -45,9 +45,13 @@ for (let i = 0; i < testcases.length; i++) {
 
 if (testresult) {
   const message =
-    "[Success]Your solution passed all " + testcases.length + " test cases!";
+    "[Success]La solución ha pasado los " +
+    testcases.length +
+    " casos de prueba!";
   console.log(message);
 }
+//"[Success]Your solution passed all " + testcases.length + " test cases!";
+//"[Fail][" + testcase.nums + "];" + result + ";" + testcase.expected;
 
 function isEqual(value, other) {
   // Get the value type

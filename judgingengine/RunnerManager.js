@@ -39,11 +39,13 @@ class Factory {
  */
 //exports.run = function (question, lang, solution, callback) { //uniquename, language, solution y callback
 exports.run = function (submission, problem, callback) {
-  console.log("**Starting run function in RunnerManager.js**");
+  //console.log("**Starting run function in RunnerManager.js**");
 
   const factory = new Factory();
   const runner = factory.createRunner(submission.language.toLowerCase());
 
+  // copy all files from solution folder to temp/question folder
+  // TODO get questions from database instead of directory
   const sourceDir = path.resolve(`${appRoot}`, "solution", problem.uniquename);
   const targetDir = path.resolve(
     `${appRoot}`,
@@ -55,16 +57,6 @@ exports.run = function (submission, problem, callback) {
       "_" +
       DateTime.now().toISO().substring(0, 23) // 2022-02-03T22:44:30.652 on local server time
   );
-
-  // copy all files from solution folder to temp/question folder
-  // TODO get questions from database instead of directory
-  /*const sourceDir = path.resolve(`${appRoot}`, "solution", question);
-  const targetDir = path.resolve(
-    `${appRoot}`,
-    "judgingengine",
-    "temp",
-    question + "_" + lang + "_" + DateTime.now().toISO().substring(0, 23) // 2022-02-03T22:44:30.652 on local server time
-  );*/
 
   // copy source code files
   FileApi.copyDirectory(
@@ -96,7 +88,7 @@ exports.run = function (submission, problem, callback) {
           // If language is javascript then write at the end of solution the method name and export it
           if (submission.language == "javascript") {
             //TODO upgrade method finding.
-            // get method name i.e: twoSum
+            // gets the method name i.e: twoSum
             const method = submission.solution
               .substring(
                 submission.solution.indexOf("var") + 4,
@@ -120,11 +112,11 @@ exports.run = function (submission, problem, callback) {
               function (status, message) {
                 if (status == "ok") {
                   // no error
-                  console.log("message");
-                  console.log(message);
                   if (message.startsWith("[Success]")) {
+                    //submission.status = "pass";
                     callback("pass", message.slice(9)); // ok, pass
                   } else {
+                    //submission.status = "fail";
                     callback("fail", message.slice(6)); // ok, fail
                   }
                 } else {

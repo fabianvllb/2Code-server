@@ -16,35 +16,34 @@ class JavaScriptRunner extends Runner {
   }
 
   run(file, directory, filename, extension, callback) {
-    console.log("**Starting run function in JavaScriptRunner.js**");
+    //console.log("**Starting run function in JavaScriptRunner.js**");
     if (extension.toLowerCase() !== ".js") {
-      console.log(`${file} is not a javascript file.`);
+      console.error(`${file} is not a javascript file.`);
     }
-
     this.execute(file, directory, callback);
   }
 
   execute(file, directory, callback) {
-    console.log("**Starting execute function in JavaScriptRunner.js**");
+    //console.log("**Starting execute function in JavaScriptRunner.js**");
     // set working directory for child_process
     const options = { cwd: directory };
     const argsRun = [];
     argsRun[0] = file;
-    console.log(`options: ${options}`);
-    console.log(`argsRun: ${argsRun}`);
+    //console.log(`options: ${options}`);
+    // console.log(`argsRun: ${argsRun}`);
 
     // node SolutionTester.js 1 0 -1 -1
     const executor = spawn("node", argsRun, options);
     executor.stdout.on("data", (output) => {
       const out = String(output);
-      //console.log(`javaRunner->execute(): stdout:`);
-      //console.log(out);
+      //console.log(`javascriptRunner->execute(): stdout:`);
+      console.log(out);
       if (out.startsWith("[Success]") || out.startsWith("[Fail]")) {
         callback("ok", String(output)); // ok, no error
       }
     });
     executor.stderr.on("data", (output) => {
-      console.log(`stderr: ${String(output)}`);
+      console.error(`stderr: ${String(output)}`);
       callback("err_exe", String(output)); // err, execution failure
     });
     executor.on("close", (output) => {

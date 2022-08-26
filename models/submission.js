@@ -1,6 +1,7 @@
 /*const { PrismaClient, Prisma } = require("@prisma/client");
 const prisma = new PrismaClient();*/
 const db = require("../models/db");
+const { DateTime } = require("luxon");
 
 module.exports = class Submission {
   constructor(problemId, language, authorId, solution, status) {
@@ -105,6 +106,7 @@ module.exports = class Submission {
 
   async insertToDB() {
     try {
+      let currentTime = DateTime.now().toISO();
       let res = await db.query(
         'INSERT INTO public.submission ("problemId", "language", "authorId", "solution", "status", runtime, timeupdated, timesubmitted) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
         [
@@ -114,8 +116,8 @@ module.exports = class Submission {
           this.solution,
           this.status,
           this.runtime,
-          this.timeupdated,
-          this.timesubmitted,
+          currentTime,
+          currentTime,
         ]
       );
       return res.rowCount;
@@ -129,7 +131,13 @@ module.exports = class Submission {
     try {
       let res = await db.query(
         "UPDATE public.submission SET solution = $1, status = $2, runtime = $3, timeupdated = $4 WHERE id = $5",
-        [this.solution, this.status, this.runtime, this.timeupdated, this.id]
+        [
+          this.solution,
+          this.status,
+          this.runtime,
+          DateTime.now().toISO(),
+          this.id,
+        ]
       );
       return res.rowCount;
     } catch (err) {
