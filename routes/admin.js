@@ -14,7 +14,16 @@ router.post(
       .isEmpty()
       .withMessage("Contraseña no puede estar vacía"),
   ],
-  admin_controller.signin
+  admin_controller.admin_signin
+);
+
+router.post(
+  "/signin",
+  [
+    // check email
+    body("email").isEmail().withMessage("Usuario incorrecto"),
+  ],
+  admin_controller.admin_checkIsAdmin
 );
 
 module.exports = router;

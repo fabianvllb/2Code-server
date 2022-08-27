@@ -21,6 +21,23 @@ module.exports = class User {
     this.salt = undefined;*/
   }
 
+  //User.createUserFromObject doesn't create a new user on the database.
+  //It converts the obtained generic object returned by postgres into a User class object
+  static createUserFromObject(obj) {
+    let user = new User(
+      obj.email,
+      obj.firstname,
+      obj.lastname,
+      obj.username,
+      obj.role
+    );
+    user.timecreated = obj.timecreated;
+    if (obj.id) user.id = obj.id;
+    /*user.hash = obj.hash;
+    user.salt = obj.salt;*/
+    return user;
+  }
+
   async insertToDB() {
     let res = await db.query(
       "INSERT INTO public.user (email, firstname, lastname, username, timecreated) VALUES ($1, $2, $3, $4, $5)",
@@ -104,21 +121,15 @@ module.exports = class User {
     return data.rows;
   }
 
-  //User.createUserFromObject doesn't create a new user on the database.
-  //It converts the obtained generic object returned by postgres into a User class object
-  static createUserFromObject(obj) {
-    let user = new User(
-      obj.email,
-      obj.firstname,
-      obj.lastname,
-      obj.username,
-      obj.role
-    );
-    user.timecreated = obj.timecreated;
-    if (obj.id) user.id = obj.id;
-    /*user.hash = obj.hash;
-    user.salt = obj.salt;*/
-    return user;
+  static async getAllUsers() {
+    try {
+      let data = await db.query(
+        "SELECT email, firstname, lastname, username, role, timecreated FROM public.user"
+      );
+      return data.rows;
+    } catch (err) {
+      throw err;
+    }
   }
 
   /*get hash() {

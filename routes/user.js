@@ -8,5 +8,7 @@ router.post("/check", user_controller.user_readoneFromEmail);
 
 router.post("/problems", user_controller.user_readAllProblems);
 
+router.get("/all", user_controller.user_readAllUsers);
+
 module.exports = router;
 //[check("email").isEmail().withMessage("not an email")],

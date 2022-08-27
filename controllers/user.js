@@ -6,7 +6,7 @@ exports.user_readoneFromEmail = async function (req, res, next) {
   try {
     const user = await User.findUserByEmail(req.body.email);
     if (user) {
-      res.status(200).send(user);
+      res.status(200).json(user);
     } else {
       res.status(404).json({ errors: ["No user for given email"] });
     }
@@ -34,5 +34,14 @@ exports.user_readAllProblems = async function (req, res, next) {
   } catch (err) {
     res.status(422).json({ errors: [err] });
     return next(err);
+  }
+};
+
+exports.user_readAllUsers = async function (req, res) {
+  try {
+    let userList = await User.getAllUsers();
+    res.status(200).json(userList);
+  } catch (err) {
+    return res.status(500).json({ errors: [err] });
   }
 };

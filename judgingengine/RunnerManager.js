@@ -31,7 +31,7 @@ class Factory {
   }
 }
 /**
- *
+ * Creates the corresponding script runner for the problem's language selected by the user.
  * @param {*} question
  * @param {*} lang
  * @param {*} solution
