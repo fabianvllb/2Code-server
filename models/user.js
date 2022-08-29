@@ -52,6 +52,25 @@ module.exports = class User {
     return res.rowCount;
   }
 
+  async updateToDB() {
+    try {
+      let res = await db.query(
+        "UPDATE public.user SET email = $1, firstname = $2, lastname = $3, username = $4, role = $5 WHERE id = $6",
+        [
+          this.email,
+          this.firstname,
+          this.lastname,
+          this.username,
+          this.role,
+          this.id,
+        ]
+      );
+      return res.rowCount;
+    } catch (err) {
+      throw err;
+    }
+  }
+
   setPassword(password) {
     this.salt = crypto.randomBytes(16).toString("hex");
     this.hash = crypto
@@ -88,28 +107,69 @@ module.exports = class User {
   }
 
   static async findUserByEmail(email) {
-    let data = await db.query("SELECT * FROM public.user WHERE email = $1", [
-      email,
-    ]);
-    if (data.rowCount != 0) {
-      //User.createUserFromObject doesn't create a new user on the database.
-      //It converts the obtained generic object returned by postgres into a User class object
-      let user = User.createUserFromObject(data.rows[0]);
-      return user;
-    } else {
-      return null;
+    try {
+      let data = await db.query("SELECT * FROM public.user WHERE email = $1", [
+        email,
+      ]);
+      if (data.rowCount != 0) {
+        //User.createUserFromObject doesn't create a new user on the database.
+        //It converts the obtained generic object returned by postgres into a User class object
+        let user = User.createUserFromObject(data.rows[0]);
+        return user;
+      } else {
+        return null;
+      }
+    } catch (err) {
+      throw err;
     }
   }
 
   static async findUserById(id) {
-    let data = await db.query("SELECT * FROM public.user WHERE id = $1", [id]);
-    if (data.rowCount != 0) {
-      //User.createUserFromObject doesn't create a new user on the database.
-      //It converts the obtained generic object returned by postgres into a User class object
-      let user = User.createUserFromObject(data.rows[0]);
-      return user;
-    } else {
-      return null;
+    try {
+      let data = await db.query("SELECT * FROM public.user WHERE id = $1", [
+        id,
+      ]);
+      if (data.rowCount != 0) {
+        //User.createUserFromObject doesn't create a new user on the database.
+        //It converts the obtained generic object returned by postgres into a User class object
+        let user = User.createUserFromObject(data.rows[0]);
+        return user;
+      } else {
+        return null;
+      }
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  static async findUserByUsername(username) {
+    try {
+      let data = await db.query(
+        "SELECT * FROM public.user WHERE username = $1",
+        [username]
+      );
+      if (data.rowCount != 0) {
+        //User.createUserFromObject doesn't create a new user on the database.
+        //It converts the obtained generic object returned by postgres into a User class object
+        let user = User.createUserFromObject(data.rows[0]);
+        return user;
+      } else {
+        return null;
+      }
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  static async findAllFilterByRole(role) {
+    try {
+      let data = await db.query(
+        "SELECT * FROM public.user WHERE role = $1 ORDER BY id",
+        [role]
+      );
+      return data.rows;
+    } catch (err) {
+      throw err;
     }
   }
 
@@ -124,7 +184,7 @@ module.exports = class User {
   static async getAllUsers() {
     try {
       let data = await db.query(
-        "SELECT email, firstname, lastname, username, role, timecreated FROM public.user"
+        "SELECT id, email, firstname, lastname, username, role FROM public.user ORDER BY role, id"
       );
       return data.rows;
     } catch (err) {
