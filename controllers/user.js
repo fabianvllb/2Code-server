@@ -130,3 +130,39 @@ exports.user_updateOne = async function (req, res) {
     return res.status(400).json({ status: "Error updating user", error: err });
   }
 };
+
+exports.user_deleteOne = async function (req, res) {
+  let user;
+  //check if user id exist
+  try {
+    user = await User.findUserById(req.params.id);
+  } catch (err) {
+    return res.status(400).json({ errors: [err] });
+  }
+  if (!user) {
+    return res.status(404).json({ status: "USER_NOT_FOUND" });
+  }
+
+  if (user.role === "admin") {
+    //check there is at least one admin
+    try {
+      let adminList = await User.findAllFilterByRole("admin");
+      if (adminList.length <= 1) {
+        return res.status(409).json({ status: "NOT_ALLOWED" });
+      }
+    } catch (err) {
+      return res.status(400).json({ errors: [err] });
+    }
+  }
+
+  try {
+    const deletedRowsCount = await user.delete();
+    if (deletedRowsCount === 1) {
+      return res.status(200).json({ status: "DELETE" });
+    } else {
+      return res.status(500).json({ status: "Error deleting user" });
+    }
+  } catch (err) {
+    return res.status(400).json({ status: "Error deleting user", error: err });
+  }
+};

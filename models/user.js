@@ -71,6 +71,17 @@ module.exports = class User {
     }
   }
 
+  async delete() {
+    try {
+      let res = await db.query("DELETE FROM public.user WHERE id = $1", [
+        this.id,
+      ]);
+      return res.rowCount;
+    } catch (err) {
+      throw err;
+    }
+  }
+
   setPassword(password) {
     this.salt = crypto.randomBytes(16).toString("hex");
     this.hash = crypto
