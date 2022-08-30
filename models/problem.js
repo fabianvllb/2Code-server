@@ -158,6 +158,25 @@ module.exports = class Problem {
     }
   }
 
+  static async getAllActiveQuestionsMinimalOrderBy(property) {
+    try {
+      let data;
+      if (property === "id") {
+        data = await db.query(
+          "SELECT id, title, difficulty FROM public.problem WHERE active=true ORDER BY id"
+        );
+      } else if (property === "difficulty") {
+        data = await db.query(
+          'SELECT p.id, p.title, p.difficulty, s2.status FROM public.problem p, (SELECT DISTINCT ON (s."problemId") s."problemId", s.status, s."authorId" FROM public.submission s WHERE s.status=\'pass\' AND s."authorId"=$1 ORDER BY s."problemId" ) s2 WHERE p.active=true AND s2."problemId"=p.id ORDER BY p.difficulty, p.id',
+          [$1]
+        );
+      }
+      return data.rows;
+    } catch (err) {
+      return err;
+    }
+  }
+
   static stringToUniqueName(text) {
     if (text) {
       let words = text.split(" ");

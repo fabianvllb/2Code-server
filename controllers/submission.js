@@ -17,6 +17,17 @@ exports.problem_all = async function (req, res, next) {
   res.status(200).send(problems);
 };
 
+exports.submission_userAll = async function (req, res) {
+  try {
+    const submissionList = await Submission.getAllSubmissionsByAuthorId(
+      req.params.id
+    );
+    return res.status(200).json(submissionList);
+  } catch (err) {
+    return res.status(500).json({ errors: [err] });
+  }
+};
+
 exports.submission_create = async function (req, res, next) {
   let submission;
   // Search existing submission

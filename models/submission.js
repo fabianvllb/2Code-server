@@ -89,6 +89,18 @@ module.exports = class Submission {
     }
   }
 
+  static async getAllSubmissionsByAuthorId(authorid) {
+    try {
+      let data = await db.query(
+        'SELECT s.id, p.uniquename, s."language", s.status, s.runtime, s.timeupdated FROM public.submission as s, public.problem as p WHERE s."problemId"=p.id AND s."authorId"=$1 ORDER BY s.timeupdated DESC',
+        [authorid]
+      );
+      return data.rows;
+    } catch (err) {
+      throw err;
+    }
+  }
+
   static createSubmissionFromObject(obj) {
     let submission = new Submission(
       obj.problemId,
