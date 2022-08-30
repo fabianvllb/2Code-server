@@ -156,11 +156,10 @@ exports.question_update = async function (req, res, next) {
 };*/
 
 exports.question_all = async function (req, res) {
-  console.log("aqui entra 1");
   if (req.query?.property) {
-    console.log("aqui entra 2", req.query?.property);
     try {
       const problemsArray = await Problem.getAllActiveQuestionsMinimalOrderBy(
+        req.query.authorid,
         req.query.property
       );
       return res.status(200).send(problemsArray);
@@ -169,7 +168,6 @@ exports.question_all = async function (req, res) {
       return next(err);
     }
   } else {
-    console.log("aqui entra 3");
     try {
       const problemsArray = await Problem.getAllActiveQuestionsMinimal();
       return res.status(200).send(problemsArray);

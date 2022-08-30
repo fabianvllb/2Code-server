@@ -158,7 +158,7 @@ module.exports = class Problem {
     }
   }
 
-  static async getAllActiveQuestionsMinimalOrderBy(property) {
+  static async getAllActiveQuestionsMinimalOrderBy(authorid, property) {
     try {
       let data;
       if (property === "id") {
@@ -167,8 +167,8 @@ module.exports = class Problem {
         );
       } else if (property === "difficulty") {
         data = await db.query(
-          'SELECT p.id, p.title, p.difficulty, s2.status FROM public.problem p, (SELECT DISTINCT ON (s."problemId") s."problemId", s.status, s."authorId" FROM public.submission s WHERE s.status=\'pass\' AND s."authorId"=$1 ORDER BY s."problemId" ) s2 WHERE p.active=true AND s2."problemId"=p.id ORDER BY p.difficulty, p.id',
-          [$1]
+          'SELECT p.id, p.title, p.difficulty, s2.status FROM public.problem p LEFT JOIN (SELECT DISTINCT ON (s."problemId") s."problemId", s.status, s."authorId" FROM public.submission s WHERE s.status=\'pass\' AND s."authorId"=$1 ORDER BY s."problemId" ) s2 ON p.id=s2."problemId" WHERE p.active=true ORDER BY p.difficulty, p.id',
+          [authorid]
         );
       }
       return data.rows;
