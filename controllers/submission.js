@@ -65,13 +65,7 @@ exports.submission_readone = async function (req, res, next) {
   try {
     const user = await User.findUserByEmail(req.body.email);
     if (!user) {
-      var error = new ValidationError(
-        "body",
-        "email",
-        req.body.email,
-        "USER_NOT_FOUND"
-      );
-      return res.status(404).json({ errors: [error] });
+      return res.status(404).json({ status: "USER_NOT_FOUND" });
     }
 
     const submission = await Submission.findLastSubmissionForProblem(
@@ -83,9 +77,9 @@ exports.submission_readone = async function (req, res, next) {
       // no submission for this user and problem is found
       return res
         .status(200)
-        .json({ msg: "NO_SUBMISSION_FOUND", submission: submission });
+        .json({ status: "NO_SUBMISSION_FOUND", submission: submission });
     }
-    res.status(200).json({ msg: "RETRIEVED", submission: submission });
+    res.status(200).json({ status: "RETRIEVED", submission: submission });
   } catch (err) {
     res.status(422).json({ errors: [err] });
     return next(err);

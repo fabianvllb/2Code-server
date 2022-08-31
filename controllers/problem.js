@@ -64,7 +64,7 @@ exports.question_readone = async function (req, res, next) {
     if (problem) {
       res.status(200).send(problem);
     } else {
-      res.status(404).json({ errors: ["No user for given id"] });
+      res.status(404).json({ status: "NO_PROBLEM_FOUND" });
     }
   } catch (err) {
     res.status(422).json({ errors: [err] });
@@ -87,64 +87,46 @@ exports.question_update = async function (req, res, next) {
     res.status(422).json({ errors: [err] });
     return next(err);
   }
-  if (problem) {
-    //check if modifying user id matches author's id
-    try {
-      const updatingUser = await User.findUserByEmail(req.body.useremail);
-
-      if (updatingUser) {
-        if (updatingUser.id != problem.authorid) {
-          var error = new ValidationError(
-            "body",
-            "useremail",
-            req.body.useremail,
-            "Modifying user is not problem's author"
-          );
-          return res.status(401).json({ errors: [error] });
-        }
-      } else {
-        var error = new ValidationError(
-          "body",
-          "useremail",
-          req.body.useremail,
-          "Modifying user could not be found"
-        );
-        return res.status(401).json({ errors: [error] });
-      }
-    } catch (err) {
-      console.error(err);
-    }
-    if (problem.title != req.body.title) {
-      let uniquename = Problem.stringToUniqueName(req.body.title);
-      let otherProblem = await Problem.findByUniquename(uniquename);
-
-      if (otherProblem) {
-        var error = new ValidationError(
-          "body",
-          "title",
-          req.body.title,
-          "Uniquename is already in use"
-        );
-        return res.status(409).json({ errors: [error] });
-      } else {
-        problem.title = req.body.title;
-        problem.uniquename = uniquename;
-      }
-    }
-    problem.description = req.body.description;
-    problem.help = req.body.help;
-    problem.tests = req.body.tests;
-    problem.difficulty = req.body.difficulty;
-    problem.jsmain = req.body.jsmain;
-    problem.cmain = req.body.cmain;
-    problem.javamain = req.body.javamain;
-    problem.active = req.body.active;
-
-    problem.updateToDB();
-    res.status(200).json({ status: "UPDATE" });
-  } else {
-    return res.status(404).send("No problem found");
+  if (!problem) {
+    return res.status(404).json({ status: "PROBLEM_NOT_FOUND" });
   }
+
+  //check if modifying user id matches author's id
+  try {
+    const updatingUser = await User.findUserByEmail(req.body.useremail);
+
+    if (updatingUser) {
+      if (updatingUser.id != problem.authorid) {
+        return res.status(401).json({ status: "USER_NOT_AUTHOR" });
+      }
+    } else {
+      return res.status(401).json({ status: "USER_NOT_FOUND" });
+    }
+  } catch (err) {
+    console.error(err);
+  }
+  if (problem.title != req.body.title) {
+    let uniquename = Problem.stringToUniqueName(req.body.title);
+    let otherProblem = await Problem.findByUniquename(uniquename);
+
+    if (otherProblem) {
+      return res.status(409).json({ status: "TITLE_IN_USE" });
+    } else {
+      problem.title = req.body.title;
+      problem.uniquename = uniquename;
+    }
+  }
+  problem.description = req.body.description;
+  problem.help = req.body.help;
+  problem.tests = req.body.tests;
+  problem.difficulty = req.body.difficulty;
+  problem.jsmain = req.body.jsmain;
+  problem.cmain = req.body.cmain;
+  problem.javamain = req.body.javamain;
+  problem.active = req.body.active;
+
+  await problem.updateToDB();
+  res.status(200).json({ status: "UPDATE" });
 };
 
 /*exports.question_delete = function (req, res, next) {

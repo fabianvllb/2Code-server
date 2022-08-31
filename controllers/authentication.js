@@ -24,7 +24,7 @@ module.exports.signup = async function (req, res) {
   user = await User.findUserByEmail(req.body.email);
   if (user) {
     // We verify if an account with this email already exists
-    return res.status(200).json({ status: "EMAIL_IN_USE" });
+    return res.status(409).json({ status: "EMAIL_IN_USE" });
   }
 
   // Retrieves the username part of the email address
@@ -42,7 +42,7 @@ module.exports.signup = async function (req, res) {
 
   const rowsCreated = await user.insertToDB();
   if (rowsCreated === 0) {
-    return res.status(409).json({ errors: ["signup: Cound't create user"] });
+    return res.status(400).json({ status: "ERROR_ON_CREATE" });
   }
   res.status(201).json({ status: "CREATE" });
 };
