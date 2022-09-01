@@ -13,7 +13,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^3.10.0",
     "app-root-path": "^2.2.1",
     "compile-run": "^2.3.4",
     "cookie-parser": "^1.4.6",
@@ -31,7 +30,6 @@
     "pg": "^8.7.3"
   },
   "devDependencies": {
-    "nodemon": "^2.0.15",
-    "prisma": "^3.10.0"
+    "nodemon": "^2.0.15"
   }
 }

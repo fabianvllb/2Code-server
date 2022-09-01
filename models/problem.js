@@ -1,5 +1,5 @@
-const { PrismaClient, Prisma } = require("@prisma/client");
-const prisma = new PrismaClient();
+// const { PrismaClient, Prisma } = require("@prisma/client");
+// const prisma = new PrismaClient();
 const db = require("../models/db");
 
 module.exports = class Problem {
@@ -123,7 +123,7 @@ module.exports = class Problem {
     return problem;
   }
 
-  static async getProblemUniquenameById(id) {
+  /*static async getProblemUniquenameById(id) {
     let problem = await prisma.problem.findUnique({
       where: {
         id,
@@ -140,7 +140,7 @@ module.exports = class Problem {
       return prisma.problem.findMany({ where });
     }
     return prisma.problem.findMany();
-  }
+  }*/
 
   static async getAllActiveQuestionsMinimal() {
     try {
