@@ -14,6 +14,9 @@ const prodConfig = process.env.DATABASE_URL; //heroku
 const pool = new Pool({
   connectionString:
     process.env.NODE_ENV === "production" ? prodConfig : localConfig,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 pool.connect((err) => {
