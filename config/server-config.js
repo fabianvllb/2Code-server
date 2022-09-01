@@ -6,7 +6,10 @@ const app = {
   port: parseInt(process.env.PORT) || 5000,
   request_delay: 0, // unit: seconds, 0: no delay
   temp_directory: "judgingengine/temp/uploads",
-  cors_client_url: process.env.LOCAL_CORS_CLIENT_URL,
+  cors_client_url:
+    env === "production"
+      ? process.env.PRODUCTION_CORS_CLIENT_URL
+      : process.env.LOCAL_CORS_CLIENT_URL,
 };
 const local = {
   app: app,
