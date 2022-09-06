@@ -2,9 +2,8 @@ const env = process.env.NODE_ENV; // 'local', 'dev', 'production'
 require("dotenv").config();
 
 const app = {
-  secret: "jwt-secret-key-johnny-abc123",
+  secret: "secret-key-none-should-know",
   port: parseInt(process.env.PORT) || 5000,
-  request_delay: 0, // unit: seconds, 0: no delay
   temp_directory: "judgingengine/temp/uploads",
   cors_client_url:
     env === "production"

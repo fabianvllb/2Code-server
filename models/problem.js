@@ -1,22 +1,6 @@
-// const { PrismaClient, Prisma } = require("@prisma/client");
-// const prisma = new PrismaClient();
 const db = require("../models/db");
 
 module.exports = class Problem {
-  /*this.id = "";
-  this.title;
-  this.uniquename;
-  this.description;
-  this.authorid;
-  let jsmain;
-  let cmain;
-  let javamain;
-  this.content; //TODO remove this eventually. Also from prisma schema.
-  this.difficulty;
-  let submissions;
-  this.createdAt;
-  let active;*/
-
   constructor(title, description, help, tests, authorid, difficulty) {
     this.id = undefined;
     this.title = title;

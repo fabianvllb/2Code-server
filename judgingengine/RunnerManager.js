@@ -7,7 +7,6 @@ const JavaScriptRunner = require("./JavaScriptRunner");
 const PythonRunner = require("./PythonRunner");
 const appRoot = require("app-root-path");
 const { DateTime } = require("luxon");
-const os = require("os");
 
 class Factory {
   constructor() {
@@ -30,22 +29,18 @@ class Factory {
     };
   }
 }
+
 /**
  * Creates the corresponding script runner for the problem's language selected by the user.
- * @param {*} question
- * @param {*} lang
- * @param {*} solution
- * @param {*} callback
+ * @param {Submission} submission Receives the submission data and in particular the code of the solution sent by the user.
+ * @param {Problem} problem Receives de data related to de problem. In particular, the problem's unique name and language are used to create
+ *                          an instance of the appropiate compiler.
+ * @param {Function} callback Used to calculate the total time execution of the solution and returning the resulto to the client.
  */
-//exports.run = function (question, lang, solution, callback) { //uniquename, language, solution y callback
 exports.run = function (submission, problem, callback) {
-  //console.log("**Starting run function in RunnerManager.js**");
-
   const factory = new Factory();
   const runner = factory.createRunner(submission.language.toLowerCase());
 
-  // copy all files from solution folder to temp/question folder
-  // TODO get questions from database instead of directory
   const sourceDir = path.resolve(`${appRoot}`, "solution", problem.uniquename);
   const targetDir = path.resolve(
     `${appRoot}`,
@@ -79,11 +74,8 @@ exports.run = function (submission, problem, callback) {
           }
           // save the solution to Solution.js/Solution.java/Solution.c
           const sourceFile = path.resolve(targetDir, runner.sourceFile());
-          //console.log(`source file: ${sourceFile}`);
           const filename = path.parse(sourceFile).name; // main or Solution.js in this case
           const extension = path.parse(sourceFile).ext; // .js
-          //console.log(`filename: ${filename}`);
-          //console.log(`extension: ${extension}`);
 
           // If language is javascript then write at the end of solution the method name and export it
           if (submission.language == "javascript") {
@@ -98,7 +90,6 @@ exports.run = function (submission, problem, callback) {
             // add to module exports
             readyToExportSolution =
               submission.solution + "; " + "module.exports = " + method + ";";
-            //solution = solution + os.EOL + " module.exports = reverseString;";
           }
           // We save Solution.js with its modified content
           FileApi.saveFile(sourceFile, readyToExportSolution, () => {
