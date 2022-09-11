@@ -44,7 +44,12 @@ class JavaScriptRunner extends Runner {
     });
     executor.stderr.on("data", (output) => {
       console.error(`stderr: ${String(output)}`);
-      callback("err_exe", String(output)); // err, execution failure
+      const message = String(output).slice(
+        String(output).indexOf("Solution.js:"),
+        String(output).indexOf("at")
+      );
+
+      callback("err_exe", message); // err, execution failure
     });
     executor.on("close", (output) => {
       console.log(`stdout: ${output}`);

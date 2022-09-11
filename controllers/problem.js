@@ -154,7 +154,7 @@ exports.question_all = async function (req, res) {
   if (req.query?.property) {
     try {
       const problemsArray = await Problem.getAllActiveQuestionsMinimalOrderBy(
-        req.query.authorid,
+        req.query.userid,
         req.query.property
       );
       return res.status(200).send(problemsArray);
