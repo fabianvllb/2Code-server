@@ -1,8 +1,5 @@
 const path = require("path");
 const FileApi = require("../api/FileApi");
-const CRunner = require("./CRunner");
-const CppRunner = require("./CppRunner");
-const JavaRunner = require("./JavaRunner");
 const JavaScriptRunner = require("./JavaScriptRunner");
 const PythonRunner = require("./PythonRunner");
 const appRoot = require("app-root-path");
@@ -15,12 +12,6 @@ class Factory {
 
       if (lang === "javascript") {
         runner = new JavaScriptRunner();
-      } else if (lang === "c") {
-        runner = new CRunner();
-      } else if (lang === "c++") {
-        runner = new CppRunner();
-      } else if (lang === "java") {
-        runner = new JavaRunner();
       } else if (lang === "python") {
         runner = new PythonRunner();
       }
