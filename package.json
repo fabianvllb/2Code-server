@@ -11,7 +11,7 @@
     "start": "NODE_ENV=production node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "server-dev": "NODE_ENV=dev nodemon ./index --ignore ./judgingengine/temp",
-    "win-server-dev": "SET NODE_ENV=dev & nodemon ./index --ignore ./judgingengine/temp.",
+    "win-server-dev": "SET NODE_ENV=dev & nodemon ./index --ignore ./judgingengine/temp",
     "test-server-dev": "NODE_ENV=dev node ./index",
     "server-local": "NODE_ENV=local nodemon ./index --ignore ./judgingengine/temp"
   },
