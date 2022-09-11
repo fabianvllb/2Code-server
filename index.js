@@ -44,27 +44,8 @@ var routes = require("./routes");
 // Use the API routes when path starts with /api
 app.use("/api", routes);
 
-// Error handling
-/*app.use(function(err, req, res, next) {
-  // error level logging
-  winston.error(winston.combinedFormat(err, req, res));
-  winston.writeError(err);
-
-  //console.log(err);
-  if (err.name === "UnauthorizedError") {
-    res.status(401);
-    res.json({
-      message:
-        err.name + ": " + err.message ||
-        " You have no authorization to view this page!"
-    });
-  }
-
-  next(err, req, res, next);
-});*/
-
 // development error handler, will print stacktrace
-if (app.get("env") === "development") {
+/* if (app.get("env") === "development") {
   app.use(function (err, req, res, next) {
     console.log(app.get("env"));
     res.status(err.status || 500);
@@ -73,7 +54,7 @@ if (app.get("env") === "development") {
       error: err,
     });
   });
-}
+} */
 
 //app.use(express.json());
 //app.use(express.urlencoded());

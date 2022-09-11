@@ -1,7 +1,6 @@
 const { Pool } = require("pg");
 const config = require("../config/server-config");
 
-//let gracefulShutdown;
 // postgres url
 const {
   db: { user, password, host, port, name },
@@ -31,10 +30,8 @@ module.exports = {
   query: async (text, params) => {
     try {
       const res = await pool.query(text, params);
-      //console.log(res.rows[0]);
       return res;
     } catch (err) {
-      //console.log(err.stack);
       throw err;
     }
   },

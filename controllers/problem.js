@@ -148,11 +148,6 @@ exports.question_update = async function (req, res, next) {
 };
 
 /*exports.question_delete = function (req, res, next) {
-  //SleepUtil.sleep();
-  Question.findByIdAndRemove(req.params.id, function (err, question) {
-    if (err) return next(err);
-    res.status(200).send(question);
-  });
 };*/
 
 exports.question_all = async function (req, res) {

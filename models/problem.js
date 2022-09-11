@@ -107,25 +107,6 @@ module.exports = class Problem {
     return problem;
   }
 
-  /*static async getProblemUniquenameById(id) {
-    let problem = await prisma.problem.findUnique({
-      where: {
-        id,
-      },
-      select: {
-        uniquename: true,
-      },
-    });
-    return problem.uniquename;
-  }
-
-  static getAllProblems(where) {
-    if (where) {
-      return prisma.problem.findMany({ where });
-    }
-    return prisma.problem.findMany();
-  }*/
-
   static async getAllActiveQuestionsMinimal() {
     try {
       const data = await db.query(
@@ -176,11 +157,3 @@ module.exports = class Problem {
     }
   }
 };
-
-/*exports.createQuestion = (data) => {
-  return prisma.problem.create({ data });
-};
-exports.getQuestions = () => {};
-exports.getOneQuestion = () => {};
-exports.updateQuestion = () => {};
-exports.deleteQuestion = () => {};*/

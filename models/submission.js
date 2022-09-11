@@ -1,5 +1,3 @@
-/*const { PrismaClient, Prisma } = require("@prisma/client");
-const prisma = new PrismaClient();*/
 const db = require("../models/db");
 const { DateTime } = require("luxon");
 
@@ -157,60 +155,4 @@ module.exports = class Submission {
       throw err;
     }
   }
-
-  /*setAllValues({
-    id,
-    solution,
-    language,
-    problemId,
-    authorId,
-    status,
-    timeupdated,
-    timesubmitted,
-    runtime,
-  }) {
-    this.id = id;
-    this.solution = solution;
-    this.language = language;
-    this.problemId = problemId;
-    this.authorId = authorId;
-    this.status = status;
-    this.timeupdated = timeupdated;
-    this.timesubmitted = timesubmitted;
-    this.runtime = runtime;
-  }*/
-
-  /*static async find(where) {
-    let submission;
-    const data = await prisma.submission.findMany({ where });
-    //console.log("data found: ", data);
-    if (data[0]) {
-      submission = new Submission();
-      submission.setAllValues(data[0]);
-    }
-    //console.log("submission: ", submission);
-    return submission;
-  }*/
-
-  /*static async findById(id, callback) {
-    const submission = new Submission();
-    let data;
-    try {
-      data = await prisma.submission.findUnique({
-        where: {
-          id,
-        },
-      });
-    } catch (err) {
-      callback(err, data);
-      return;
-    }
-    if (!data || data == undefined) {
-      callback(`Error on findById- No submission with id ${id} found`, data);
-    } else {
-      submission.setAllValues(data);
-      callback(undefined, submission);
-    }
-    return;
-  }*/
 };
