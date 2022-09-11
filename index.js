@@ -45,7 +45,7 @@ var routes = require("./routes");
 app.use("/api", routes);
 
 // development error handler, will print stacktrace
-/* if (app.get("env") === "development") {
+if (app.get("env") === "development") {
   app.use(function (err, req, res, next) {
     console.log(app.get("env"));
     res.status(err.status || 500);
@@ -54,7 +54,7 @@ app.use("/api", routes);
       error: err,
     });
   });
-} */
+}
 
 //app.use(express.json());
 //app.use(express.urlencoded());

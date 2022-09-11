@@ -29,6 +29,15 @@ const dev = {
     name: process.env.DEV_PG_DATABASE,
   },
 };
+const production = {
+  app: app,
+  db: {
+    // WARNING: DO NOT MAINTAIN PRODUCTION DATABASE INFORMATION HERE
+    host: process.env.PROD_DB_HOST,
+    //port: parseInt(process.env.PROD_DB_PORT),
+    name: process.env.PROD_DB_NAME,
+  },
+};
 
 const config = {
   local,
