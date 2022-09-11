@@ -42,6 +42,7 @@ const production = {
 const config = {
   local,
   dev,
+  production,
 };
 
 module.exports = config[env || "local"];
