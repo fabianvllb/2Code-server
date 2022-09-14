@@ -17,34 +17,39 @@ CREATE TABLE "user" (
 
   
 CREATE TABLE "problem" (
-    "id" SERIAL PRIMARY KEY,
-    "title" VARCHAR(255) NOT NULL,
-    "uniquename" VARCHAR(255) UNIQUE NOT NULL,
-    "description" TEXT,
-    "help" TEXT,
-    "tests" TEXT,
-    "authorid" INTEGER NOT NULL,
-    "jsmain" TEXT,
-    "cmain" TEXT,
-    "javamain" TEXT,
-    "difficulty" VARCHAR(255) NOT NULL,
-    "active" BOOLEAN NOT NULL DEFAULT true,
-    "timecreated" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+  "id" SERIAL PRIMARY KEY,
+  "title" VARCHAR(255) NOT NULL,
+  "uniquename" VARCHAR(255) UNIQUE NOT NULL,
+  "description" TEXT,
+  "help" TEXT,
+  "tests" TEXT,
+  "authorid" INTEGER NOT NULL,
+  "jsmain" TEXT,
+  "cmain" TEXT,
+  "javamain" TEXT,
+  "difficulty" VARCHAR(255) NOT NULL,
+  "active" BOOLEAN NOT NULL DEFAULT true,
+  "timecreated" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE "submission" (
-    "id" SERIAL PRIMARY KEY,
-    "problemId" INTEGER NOT NULL,
-    "language" TEXT NOT NULL,
-    "authorId" INTEGER NOT NULL,
-    "solution" TEXT,
-    "status" VARCHAR(255) NOT NULL DEFAULT 'pending',
-    "runtime" REAL,
-    "timeupdated" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "timesubmitted" TIMESTAMP(3)
+  "id" SERIAL PRIMARY KEY,
+  "problemId" INTEGER NOT NULL,
+  "language" TEXT NOT NULL,
+  "authorId" INTEGER NOT NULL,
+  "solution" TEXT,
+  "status" VARCHAR(255) NOT NULL DEFAULT 'pending',
+  "runtime" REAL,
+  "timeupdated" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "timesubmitted" TIMESTAMP(3)
 );
 
-
+CREATE TABLE "note" (
+  "id" SERIAL PRIMARY KEY,
+  "problemid" INTEGER NOT NULL,
+  "authorid" INTEGER NOT NULL,
+  "content" TEXT
+);
 -- CREATE TABLE "usertest" (
 --   "id" SERIAL PRIMARY KEY,
 --   "email" VARCHAR(255) UNIQUE NOT NULL,

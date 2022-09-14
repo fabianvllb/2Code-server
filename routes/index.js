@@ -5,6 +5,7 @@ const problem = require("./problem");
 const submission = require("./submission");
 const user = require("./user");
 const admin = require("./admin");
+const note = require("./note");
 
 // test route to make sure everything is working (accessed at GET http://localhost:5000/api)
 router.get("/", function (req, res) {
@@ -16,5 +17,6 @@ router.use("/problem", problem);
 router.use("/submission", submission);
 router.use("/user", user);
 router.use("/admin", admin);
+router.use("/note", note);
 
 module.exports = router;
