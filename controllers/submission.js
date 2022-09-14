@@ -87,12 +87,55 @@ exports.submission_readone = async function (req, res, next) {
     return next(err);
   }
 };
-/*
-exports.submission_update = function(req, res, next) {
+
+exports.submission_save = async function (req, res) {
+  try {
+    // Search user id:
+    const user = await User.findUserById(req.body.userid);
+    if (!user) {
+      // If user doesn't exist
+      return res.status(404).json({ status: "USER_NOT_FOUND" });
+    }
+
+    // Find submission's problem
+    let problem = await Problem.findProblemById(parseInt(req.body.problemid));
+    if (!problem) {
+      return res.status(404).json({ status: "PROBLEM_NOT_FOUND" });
+    }
+
+    // Search existing submission
+    let submission = await Submission.findSubmissionByLanguageAndStatus(
+      req.body.problemid,
+      req.body.language,
+      user.id,
+      "pending"
+    );
+    if (!submission) {
+      // If no submission is found
+      // Create new submission
+      submission = new Submission(
+        req.body.problemid,
+        req.body.language,
+        user.id,
+        req.body.code,
+        "pending" // not submitted -> just created
+      );
+      // Save new submission
+      try {
+        const rowCount = await submission.insertToDB();
+        //console.log("rowCount: ", rowCount);
+      } catch (err) {
+        return res.status(500).json({ errors: [err] });
+      }
+    }
+    return res.status(200).json({ status: "SAVE" });
+  } catch (err) {
+    return res.status(500).json({ errors: [err] });
+  }
 };
 
-exports.submission_delete = function(req, res, next) {
-};
+/* exports.submission_delete = function(req, res, next) {
+}; */
 
 /**
  * Retrieves all the data needed for compiling and running the submited code (submission).

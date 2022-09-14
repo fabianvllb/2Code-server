@@ -16,16 +16,7 @@ router.post("/", submission_controller.submission_create);
 
 router.post("/data", submission_controller.submission_readone);
 
-//router.get("/:id", submission_controller.submission_readone);
-
-//router.put("/:id", submission_controller.submission_update);
-
-//router.delete("/:id", submission_controller.submission_delete);
-
-//router.get("/one/:keys", submission_controller.submission_findByKeys);
-
-//router.put("/:names", submission_controller.submission_update); //esta es equivalente a la linea de abajo
-//router.get("/all/:names", submission_controller.submission_all);
+router.post("/save", submission_controller.submission_save);
 
 router.post("/run", submission_controller.submission_run);
 
