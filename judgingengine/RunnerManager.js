@@ -1,7 +1,6 @@
 const path = require("path");
 const FileApi = require("../api/FileApi");
 const JavaScriptRunner = require("./JavaScriptRunner");
-const PythonRunner = require("./PythonRunner");
 const appRoot = require("app-root-path");
 const { DateTime } = require("luxon");
 
@@ -12,9 +11,9 @@ class Factory {
 
       if (lang === "javascript") {
         runner = new JavaScriptRunner();
-      } else if (lang === "python") {
+      } /* else if (lang === "python") {
         runner = new PythonRunner();
-      }
+      } */
 
       return runner;
     };
